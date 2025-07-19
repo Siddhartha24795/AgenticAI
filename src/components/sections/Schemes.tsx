@@ -115,13 +115,15 @@ export default function SchemesComponent() {
     
     recognitionRef.current.onerror = (event: any) => {
       console.error("Speech recognition error", event.error);
-      toast({ title: "Speech Error", description: `An error occurred: ${event.error}`, variant: "destructive" });
+       if (event.error !== 'no-speech') {
+        toast({ title: "Speech Error", description: `An error occurred: ${event.error}`, variant: "destructive" });
+      }
       setIsRecording(false);
     };
 
     recognitionRef.current.onend = () => {
       setIsRecording(false);
-      if (query || event.results[0][0].transcript) {
+      if (query) {
         handleSearch('audio');
       }
     };

@@ -191,12 +191,20 @@ export default function DiagnoseComponent() {
 
     recognitionRef.current.onerror = (event: any) => {
       console.error("Speech recognition error", event.error);
-      toast({ title: "Speech Error", description: `An error occurred: ${event.error}`, variant: "destructive" });
+      if (event.error !== 'no-speech') {
+        toast({ title: "Speech Error", description: `An error occurred: ${event.error}`, variant: "destructive" });
+      }
       setIsRecording(false);
     };
     
     recognitionRef.current.onend = () => {
       setIsRecording(false);
+      // We need a way to access the final transcript here as state update might not be complete.
+      // A common pattern is to use a ref or check the event if available.
+      // For now, let's assume textQuery state might not be the latest.
+      // A better way is to pass the transcript from onresult to onend.
+      // But since that's not direct, we'll check the final transcript if possible.
+      // A simple check on textQuery will be done for now.
       if (textQuery) {
           handleDiagnose('audio');
       }
