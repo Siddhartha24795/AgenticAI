@@ -1,9 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import { useAuth } from '@/hooks/use-auth';
-import { Skeleton } from '@/components/ui/skeleton';
-import AppClientLayout from './AppClientLayout';
+import Header from '@/components/layout/Header';
 
 export const metadata: Metadata = {
   title: 'AgriAssist AI',
@@ -30,7 +28,12 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body bg-background text-foreground antialiased">
-        <AppClientLayout>{children}</AppClientLayout>
+        <div className="flex flex-col min-h-screen">
+          <Header />
+          <main className="flex-grow container mx-auto p-4 sm:p-6 md:p-8">
+            {children}
+          </main>
+        </div>
         <Toaster />
       </body>
     </html>

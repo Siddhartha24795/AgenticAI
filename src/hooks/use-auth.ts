@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -12,19 +13,16 @@ export function useAuth() {
 
   useEffect(() => {
     if (!auth) {
-        console.warn("Firebase Auth is not initialized.");
         setIsAuthReady(true);
         return;
     };
-
+    
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUser(user);
         setIsAuthReady(true);
       } else {
         try {
-          // The onAuthStateChanged listener will be called again with the new user
-          // after a successful sign-in, which will then set the user and isAuthReady state.
           if (initialAuthToken) {
             await signInWithCustomToken(auth, initialAuthToken);
           } else {
@@ -37,7 +35,7 @@ export function useAuth() {
             description: (error as Error).message,
             variant: "destructive",
           });
-          setIsAuthReady(true); // Mark as ready even on error to avoid UI blocking
+          setIsAuthReady(true); // Mark as ready even on error
         }
       }
     });
