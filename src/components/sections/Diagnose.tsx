@@ -55,9 +55,29 @@ export default function DiagnoseComponent() {
       })) as Diagnosis[];
       setHistory(historyData);
       setHistoryLoading(false);
-    }, (error) => {
+    }, (error: any) => {
       console.error("Error fetching diagnosis history:", error);
-      toast({ title: "Error", description: "Could not fetch diagnosis history.", variant: "destructive" });
+      let description = "Could not fetch diagnosis history.";
+      
+      if (error.code === 'failed-precondition' && error.message.includes('index')) {
+        const urlMatch = error.message.match(/(https?:\/\/[^\s]+)/);
+        if (urlMatch) {
+          const url = urlMatch[0];
+          description = `Firestore needs an index. Please <a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">click here to create it</a>, then refresh the page.`;
+        } else {
+          description = 'Firestore requires a new index. Please check the Firebase console for the creation link.';
+        }
+         toast({ 
+          title: "Firestore Index Required", 
+          description: <div dangerouslySetInnerHTML={{ __html: description }} />,
+          variant: "destructive",
+          duration: 20000 
+        });
+
+      } else {
+         toast({ title: "Error", description, variant: "destructive" });
+      }
+
       setHistoryLoading(false);
     });
 
