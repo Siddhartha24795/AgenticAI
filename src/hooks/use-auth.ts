@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { onAuthStateChanged, signInAnonymously, signInWithCustomToken, type User } from 'firebase/auth';
+import { onAuthStateChanged, signInAnonymously, signInWithCustomToken, type User, type Auth } from 'firebase/auth';
 import { getFirebaseAuth, getInitialAuthToken } from '@/lib/firebase';
 import { useToast } from "@/hooks/use-toast";
 
@@ -12,11 +12,10 @@ export function useAuth() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // getFirebaseAuth will initialize if needed
-    const auth = getFirebaseAuth(); 
+    const auth = getFirebaseAuth();
     if (!auth) {
-        // This can happen if the firebase config is not yet available.
-        // The effect will re-run once the component re-renders.
+        // This can happen if the firebase config is not yet available on the client.
+        // The effect will re-run once the component re-renders and it is.
         return;
     };
     

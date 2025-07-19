@@ -21,6 +21,10 @@ function initializeFirebase() {
         if (firebaseConfigStr) {
             try {
                 const firebaseConfig = JSON.parse(firebaseConfigStr);
+                if (Object.keys(firebaseConfig).length === 0) {
+                  // Config is an empty object, not yet populated.
+                  return;
+                }
                 app = initializeApp(firebaseConfig);
             } catch (e) {
                 console.error("Failed to parse Firebase config:", e);
