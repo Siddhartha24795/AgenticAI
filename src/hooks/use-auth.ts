@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged, signInAnonymously, type User } from 'firebase/auth';
-import { getFirebaseAuth } from '@/lib/firebase';
+import { initializeFirebaseClient, getFirebaseAuth } from '@/lib/firebase';
 import { useToast } from "@/hooks/use-toast";
 
 export function useAuth() {
@@ -12,12 +12,17 @@ export function useAuth() {
   const { toast } = useToast();
 
   useEffect(() => {
+    initializeFirebaseClient();
     const auth = getFirebaseAuth();
 
     if (!auth) {
-      // This can happen if Firebase config is missing.
-      // The firebase.ts module will log an error.
-      setIsAuthReady(true); // Unblock the UI
+      console.error("Firebase Auth service is not available.");
+      toast({
+        title: "Authentication Error",
+        description: "Firebase is not configured correctly.",
+        variant: "destructive",
+      });
+      setIsAuthReady(true);
       return;
     }
 
@@ -25,7 +30,6 @@ export function useAuth() {
       if (currentUser) {
         setUser(currentUser);
       } else {
-        // If not logged in, sign in anonymously
         try {
           await signInAnonymously(auth);
         } catch (error) {
