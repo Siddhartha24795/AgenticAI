@@ -1,13 +1,33 @@
+
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Leaf, LineChart, ShieldCheck } from "lucide-react";
-import type { User } from "firebase/auth";
 import Link from "next/link";
 import { useAuth } from "@/hooks/use-auth";
+import { Skeleton } from "../ui/skeleton";
 
 export default function HomeComponent() {
-    const { user } = useAuth();
+    const { user, isAuthReady } = useAuth();
     const userName = user?.isAnonymous ? 'Farmer' : 'Siddhartha Mishra';
+
+    if (!isAuthReady) {
+        return (
+            <Card className="border-none shadow-none bg-transparent">
+                <CardHeader className="text-center">
+                    <Skeleton className="h-10 w-3/4 mx-auto" />
+                    <Skeleton className="h-6 w-1/2 mx-auto mt-2" />
+                </CardHeader>
+                <CardContent className="mt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <Skeleton className="h-48 w-full" />
+                        <Skeleton className="h-48 w-full" />
+                        <Skeleton className="h-48 w-full" />
+                    </div>
+                </CardContent>
+            </Card>
+        )
+    }
+
     return (
         <Card className="border-none shadow-none bg-transparent">
             <CardHeader className="text-center">

@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged, signInAnonymously, type User } from 'firebase/auth';
-import { initializeFirebaseClient, getFirebaseAuth } from '@/lib/firebase';
+import { getFirebaseAuth } from '@/lib/firebase';
 import { useToast } from "@/hooks/use-toast";
 
 export function useAuth() {
@@ -12,17 +12,16 @@ export function useAuth() {
   const { toast } = useToast();
 
   useEffect(() => {
-    initializeFirebaseClient();
     const auth = getFirebaseAuth();
 
     if (!auth) {
       console.error("Firebase Auth service is not available.");
       toast({
         title: "Authentication Error",
-        description: "Firebase is not configured correctly.",
+        description: "Firebase is not configured correctly. Check environment variables.",
         variant: "destructive",
       });
-      setIsAuthReady(true);
+      setIsAuthReady(true); // Unblock UI
       return;
     }
 
@@ -36,7 +35,7 @@ export function useAuth() {
           console.error("Firebase anonymous sign-in error:", error);
           toast({
             title: "Authentication Failed",
-            description: "Could not sign in anonymously.",
+            description: "Could not sign in anonymously. Please check your API key.",
             variant: "destructive",
           });
         }
