@@ -47,16 +47,21 @@ export default function MarketComponent() {
       }
       const marketData = await marketResponse.json();
 
-      const analysisResult = await getMarketInsights({
+      const analysisPromise = getMarketInsights({
         cropQuery: textQuery,
         marketData: JSON.stringify(marketData),
         language: languagePrompt,
       });
+
+      const [analysisResult] = await Promise.all([analysisPromise]);
       const marketSummary = analysisResult.marketSummary;
       setResult(marketSummary);
+
+      const speechPromise = textToSpeech({ text: marketSummary });
+      
       toast({ title: "Success", description: "Market analysis complete." });
 
-      const speechResult = await textToSpeech({ text: marketSummary });
+      const [speechResult] = await Promise.all([speechPromise]);
       setAudioResponseUri(speechResult.audioDataUri);
 
     } catch (error) {

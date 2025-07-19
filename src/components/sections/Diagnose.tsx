@@ -131,22 +131,27 @@ export default function DiagnoseComponent() {
           textQuery: query || undefined,
           language: languagePrompt,
       }
-      const result = await analyzePlantImage(input);
-      const diagnosisText = result.diagnosis;
+      
+      const textPromise = analyzePlantImage(input);
+      
+      const [textResult] = await Promise.all([textPromise]);
+      const diagnosisText = textResult.diagnosis;
       setDiagnosisResult(diagnosisText);
+      
+      const speechPromise = textToSpeech({ text: diagnosisText });
 
       const db = getFirebaseDb();
       const appId = getFirebaseAppId();
       if (db) {
-          await addDoc(collection(db, `artifacts/${appId}/users/${user.uid}/diagnoses`), {
+          addDoc(collection(db, `artifacts/${appId}/users/${user.uid}/diagnoses`), {
               imageUrl: imagePreview || null,
               diagnosis: diagnosisText,
               timestamp: serverTimestamp(),
-          });
+          }).catch(console.error);
       }
       toast({ title: "Success", description: "Plant analysis complete." });
 
-      const speechResult = await textToSpeech({ text: diagnosisText });
+      const [speechResult] = await Promise.all([speechPromise]);
       setAudioResponseUri(speechResult.audioDataUri);
 
     } catch(e) {

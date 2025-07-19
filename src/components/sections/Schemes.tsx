@@ -36,6 +36,14 @@ const GOVERNMENT_SCHEME_DOCS = [
     }
 ];
 
+function stripHtml(html: string) {
+  if (typeof window === 'undefined') {
+    return html;
+  }
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  return doc.body.textContent || "";
+}
+
 export default function SchemesComponent() {
   const [query, setQuery] = useState('');
   const [result, setResult] = useState<string | null>(null);
@@ -63,16 +71,22 @@ export default function SchemesComponent() {
     setAudioResponseUri(null);
 
     try {
-      const searchResult = await getSchemeInformation({
+      const searchPromise = getSchemeInformation({
         schemeQuery: textQuery,
         schemeDocuments: GOVERNMENT_SCHEME_DOCS,
         language: languagePrompt,
       });
+
+      const [searchResult] = await Promise.all([searchPromise]);
       const schemeInformation = searchResult.schemeInformation;
       setResult(schemeInformation);
-      toast({ title: "Success", description: "Scheme information retrieved." });
 
-      const speechResult = await textToSpeech({ text: schemeInformation });
+      const textForSpeech = stripHtml(schemeInformation);
+      const speechPromise = textToSpeech({ text: textForSpeech });
+      
+      toast({ title: "Success", description: "Scheme information retrieved." });
+      
+      const [speechResult] = await Promise.all([speechPromise]);
       setAudioResponseUri(speechResult.audioDataUri);
 
     } catch (error) {
