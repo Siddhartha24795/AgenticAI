@@ -3,73 +3,55 @@ import { initializeApp, getApp, getApps, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 
-let app: FirebaseApp | null = null;
-let auth: Auth | null = null;
-let db: Firestore | null = null;
-let appId: string | null = null;
-let initialAuthToken: string | null = null;
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+};
 
-function initializeFirebase() {
-    if (typeof window === 'undefined' || app) {
-        return;
-    }
+let app: FirebaseApp;
+let auth: Auth;
+let db: Firestore;
 
-    if (getApps().length) {
-        app = getApp();
-    } else {
-        const firebaseConfigStr = (window as any).__firebase_config;
-        if (firebaseConfigStr) {
-            try {
-                const firebaseConfig = JSON.parse(firebaseConfigStr);
-                if (Object.keys(firebaseConfig).length === 0) {
-                  // Config is an empty object, not yet populated.
-                  return;
-                }
-                app = initializeApp(firebaseConfig);
-            } catch (e) {
-                console.error("Failed to parse Firebase config:", e);
-                return; 
-            }
-        } else {
-            // Config not available yet.
-            return;
-        }
-    }
-
-    if (app) {
-        auth = getAuth(app);
-        db = getFirestore(app);
-        appId = (window as any).__app_id || 'default-app-id';
-        initialAuthToken = (window as any).__initial_auth_token || null;
-    }
+// Initialize Firebase on the client side
+if (typeof window !== 'undefined' && !getApps().length) {
+  // Check if all required config values are present
+  if (
+    firebaseConfig.apiKey &&
+    firebaseConfig.authDomain &&
+    firebaseConfig.projectId &&
+    firebaseConfig.appId
+  ) {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+  } else {
+    console.error("Firebase configuration is missing or incomplete. Please check your .env file.");
+  }
+} else if (getApps().length) {
+    app = getApp();
+    auth = getAuth(app);
+    db = getFirestore(app);
 }
 
 function getFirebaseAuth(): Auth | null {
-    if (!auth) {
-        initializeFirebase();
-    }
-    return auth;
+    return auth || null;
 }
 
 function getFirebaseDb(): Firestore | null {
-    if (!db) {
-        initializeFirebase();
-    }
-    return db;
+    return db || null;
 }
 
 function getFirebaseAppId(): string | null {
-    if (!appId) {
-        initializeFirebase();
-    }
-    return appId;
+    return firebaseConfig.appId || null;
 }
 
+// This is no longer used but kept for compatibility if needed elsewhere.
 function getInitialAuthToken(): string | null {
-    if (initialAuthToken === null) {
-        initializeFirebase();
-    }
-    return initialAuthToken;
+    return null;
 }
 
 export { 

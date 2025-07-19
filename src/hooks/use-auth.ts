@@ -2,8 +2,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { onAuthStateChanged, signInAnonymously, signInWithCustomToken, type User } from 'firebase/auth';
-import { getFirebaseAuth, getInitialAuthToken } from '@/lib/firebase';
+import { onAuthStateChanged, signInAnonymously, type User } from 'firebase/auth';
+import { getFirebaseAuth } from '@/lib/firebase';
 import { useToast } from "@/hooks/use-toast";
 
 export function useAuth() {
@@ -12,80 +12,35 @@ export function useAuth() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Function to handle the authentication logic
-    const initAuth = () => {
-      const auth = getFirebaseAuth();
-      if (!auth) {
-        // If auth isn't ready, we shouldn't proceed.
-        // The check for config readiness below should prevent this.
-        console.error("Firebase Auth could not be initialized. This should not happen.");
-        setIsAuthReady(true); // Unblock UI
-        return;
-      }
+    const auth = getFirebaseAuth();
 
-      const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-        if (currentUser) {
-          setUser(currentUser);
-        } else {
-          try {
-            const initialAuthToken = getInitialAuthToken();
-            if (initialAuthToken) {
-              await signInWithCustomToken(auth, initialAuthToken);
-            } else {
-              await signInAnonymously(auth);
-            }
-          } catch (error) {
-            console.error("Firebase authentication error:", error);
-            toast({
-              title: "Authentication Failed",
-              description: (error as Error).message,
-              variant: "destructive",
-            });
-          }
-        }
-        setIsAuthReady(true);
-      });
-
-      return unsubscribe;
-    };
-
-    // Check if the Firebase config is ready on the window object.
-    // If not, wait for it. This is crucial to avoid race conditions.
-    if (typeof window !== 'undefined' && !(window as any).__firebase_config) {
-      const interval = setInterval(() => {
-        if ((window as any).__firebase_config) {
-          clearInterval(interval);
-          initAuth();
-        }
-      }, 100); // Check every 100ms
-
-      // Timeout to prevent an infinite loop
-      const timeout = setTimeout(() => {
-        clearInterval(interval);
-        if (!(window as any).__firebase_config) {
-           setIsAuthReady(true); // Unblock UI
-           console.error("Firebase config not available after delay.");
-           toast({
-             title: "Configuration Error",
-             description: "Could not initialize Firebase. Please check your configuration.",
-             variant: "destructive",
-           });
-        }
-      }, 5000); // 5-second timeout
-
-      return () => {
-        clearInterval(interval);
-        clearTimeout(timeout);
-      };
-    } else {
-      // Config is ready, initialize auth immediately.
-      const unsubscribe = initAuth();
-      return () => {
-        if (unsubscribe) {
-          unsubscribe();
-        }
-      };
+    if (!auth) {
+      // This can happen if Firebase config is missing.
+      // The firebase.ts module will log an error.
+      setIsAuthReady(true); // Unblock the UI
+      return;
     }
+
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+      } else {
+        // If not logged in, sign in anonymously
+        try {
+          await signInAnonymously(auth);
+        } catch (error) {
+          console.error("Firebase anonymous sign-in error:", error);
+          toast({
+            title: "Authentication Failed",
+            description: "Could not sign in anonymously.",
+            variant: "destructive",
+          });
+        }
+      }
+      setIsAuthReady(true);
+    });
+
+    return () => unsubscribe();
   }, [toast]);
 
   return { user, isAuthReady };
