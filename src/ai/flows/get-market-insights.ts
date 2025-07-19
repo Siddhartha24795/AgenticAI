@@ -1,4 +1,4 @@
-// src/ai/flows/get-market-insights.ts
+
 'use server';
 
 /**
@@ -15,6 +15,7 @@ import {z} from 'genkit';
 const GetMarketInsightsInputSchema = z.object({
   cropQuery: z.string().describe('The farmer\'s question about a specific crop.'),
   marketData: z.string().describe('JSON string market data.'),
+  language: z.string().describe("The language for the response (e.g., 'English', 'Kannada', 'Hindi')."),
 });
 export type GetMarketInsightsInput = z.infer<typeof GetMarketInsightsInputSchema>;
 
@@ -32,7 +33,7 @@ const prompt = ai.definePrompt({
   input: {schema: GetMarketInsightsInputSchema},
   output: {schema: GetMarketInsightsOutputSchema},
   prompt: `A farmer asked: "{{cropQuery}}". I have fetched the following market data: {{{marketData}}}.
-          Please analyze this data and provide a simple, actionable summary for the farmer, guiding their selling decisions. Focus on the price of "tomatoes" if mentioned, otherwise generalize. Respond in clear, easy-to-understand Kannada.`,
+          Please analyze this data and provide a simple, actionable summary for the farmer, guiding their selling decisions. Focus on the price of "tomatoes" if mentioned, otherwise generalize. Respond in clear, easy-to-understand {{language}}.`,
 });
 
 const getMarketInsightsFlow = ai.defineFlow(

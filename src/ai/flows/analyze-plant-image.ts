@@ -1,4 +1,3 @@
-// This file is machine-generated - edit at your own risk!
 
 'use server';
 
@@ -17,9 +16,10 @@ const AnalyzePlantImageInputSchema = z.object({
   photoDataUri: z
     .string()
     .describe(
-      "A photo of a plant, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+      "A photo of a plant, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'"
     ).optional(),
   textQuery: z.string().describe("A text query from the user about their plant.").optional(),
+  language: z.string().describe("The language for the response (e.g., 'English', 'Kannada', 'Hindi')."),
 });
 export type AnalyzePlantImageInput = z.infer<typeof AnalyzePlantImageInputSchema>;
 
@@ -27,7 +27,7 @@ const AnalyzePlantImageOutputSchema = z.object({
   diagnosis: z
     .string()
     .describe(
-      'A diagnosis of potential diseases or pests, along with actionable remedies, in Kannada.'
+      'A diagnosis of potential diseases or pests, along with actionable remedies, in the specified language.'
     ),
 });
 export type AnalyzePlantImageOutput = z.infer<typeof AnalyzePlantImageOutputSchema>;
@@ -42,7 +42,7 @@ const prompt = ai.definePrompt({
   name: 'analyzePlantImagePrompt',
   input: {schema: AnalyzePlantImageInputSchema},
   output: {schema: AnalyzePlantImageOutputSchema},
-  prompt: `You are an expert botanist who speaks Kannada. Analyze this plant and provide a diagnosis of potential diseases or pests, along with actionable remedies. Respond in Kannada.
+  prompt: `You are an expert botanist who speaks {{language}}. Analyze this plant and provide a diagnosis of potential diseases or pests, along with actionable remedies. Respond in {{language}}.
   
   {{#if textQuery}}
   User Query: {{{textQuery}}}

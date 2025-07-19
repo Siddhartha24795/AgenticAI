@@ -7,11 +7,10 @@ import { getSchemeInformation } from '@/ai/flows/get-scheme-information';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Mic, Text, AudioLines } from 'lucide-react';
+import { Loader2, Mic, Send } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '../ui/skeleton';
-
+import { useLanguage } from '@/hooks/use-language';
 
 const GOVERNMENT_SCHEME_DOCS = [
     {
@@ -46,6 +45,7 @@ export default function SchemesComponent() {
   const { toast } = useToast();
   const recognitionRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const { languageCode, languagePrompt } = useLanguage();
   
   useEffect(() => {
     if (audioResponseUri && audioRef.current) {
@@ -53,8 +53,8 @@ export default function SchemesComponent() {
     }
   }, [audioResponseUri]);
 
-  const handleSearch = async (mode: 'text' | 'audio' = 'text') => {
-    if (!query.trim()) {
+  const handleSearch = async (textQuery: string) => {
+    if (!textQuery.trim()) {
       toast({ title: "Error", description: "Please enter a query for government schemes.", variant: "destructive" });
       return;
     }
@@ -64,17 +64,17 @@ export default function SchemesComponent() {
 
     try {
       const searchResult = await getSchemeInformation({
-        schemeQuery: query,
+        schemeQuery: textQuery,
         schemeDocuments: GOVERNMENT_SCHEME_DOCS,
+        language: languagePrompt,
       });
       const schemeInformation = searchResult.schemeInformation;
       setResult(schemeInformation);
       toast({ title: "Success", description: "Scheme information retrieved." });
 
-      if (mode === 'audio') {
-        const speechResult = await textToSpeech({ text: schemeInformation });
-        setAudioResponseUri(speechResult.audioDataUri);
-      }
+      const speechResult = await textToSpeech({ text: schemeInformation });
+      setAudioResponseUri(speechResult.audioDataUri);
+
     } catch (error) {
       console.error("Error getting scheme info:", error);
       setResult(`Error: ${(error as Error).message}. Please try again.`);
@@ -82,6 +82,10 @@ export default function SchemesComponent() {
     } finally {
       setLoading(false);
     }
+  };
+  
+  const handleTextSubmit = () => {
+    handleSearch(query);
   };
 
   const handleMicClick = () => {
@@ -98,24 +102,25 @@ export default function SchemesComponent() {
     }
 
     recognitionRef.current = new SpeechRecognition();
-    recognitionRef.current.lang = 'kn-IN'; // Kannada
+    recognitionRef.current.lang = languageCode;
     recognitionRef.current.interimResults = false;
     recognitionRef.current.maxAlternatives = 1;
 
     recognitionRef.current.onstart = () => {
       setIsRecording(true);
       setQuery('');
-      toast({ title: "Listening...", description: "Please speak your query in Kannada."});
+      toast({ title: "Listening...", description: `Please speak your query in ${languagePrompt}.`});
     };
 
     recognitionRef.current.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
       setQuery(transcript);
+      handleSearch(transcript);
     };
     
     recognitionRef.current.onerror = (event: any) => {
-      console.error("Speech recognition error", event.error);
        if (event.error !== 'no-speech') {
+        console.error("Speech recognition error", event.error);
         toast({ title: "Speech Error", description: `An error occurred: ${event.error}`, variant: "destructive" });
       }
       setIsRecording(false);
@@ -123,9 +128,6 @@ export default function SchemesComponent() {
 
     recognitionRef.current.onend = () => {
       setIsRecording(false);
-      if (query) {
-        handleSearch('audio');
-      }
     };
 
     recognitionRef.current.start();
@@ -138,39 +140,27 @@ export default function SchemesComponent() {
         <CardDescription>Ask about government schemes to find eligibility and application info (e.g., "subsidies for drip irrigation").</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Tabs defaultValue="text">
-            <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="text"><Text className="mr-2"/>Text Query</TabsTrigger>
-                <TabsTrigger value="audio"><AudioLines className="mr-2"/>Audio Query</TabsTrigger>
-            </TabsList>
-            <TabsContent value="text" className="space-y-4 pt-4">
-                <Textarea
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Enter your query here..."
-                  className="min-h-[100px]"
-                />
-                <Button onClick={() => handleSearch('text')} disabled={loading} className="w-full">
-                  {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  {loading ? 'Searching Schemes...' : 'Get Scheme Information'}
-                </Button>
-            </TabsContent>
-            <TabsContent value="audio" className="space-y-4 pt-4">
-                <div className="flex flex-col items-center justify-center space-y-4 p-8 border-2 border-dashed border-muted-foreground/50 rounded-lg">
-                    <p className="text-center text-muted-foreground">Press the button and speak in Kannada to ask about government schemes.</p>
-                    <Button
-                        onClick={handleMicClick}
-                        disabled={loading}
-                        size="lg"
-                        className={`rounded-full w-24 h-24 ${isRecording ? 'bg-red-500 hover:bg-red-600 animate-pulse' : ''}`}
-                    >
-                        {loading ? <Loader2 className="h-10 w-10 animate-spin" /> : <Mic className="w-10 h-10" />}
-                    </Button>
-                    <p className="text-sm text-muted-foreground h-4">{isRecording ? "Recording..." : (loading ? "Processing..." : "Tap to speak")}</p>
-                </div>
-                 {query && !loading && <p className="text-center text-sm text-muted-foreground italic">You said: "{query}"</p>}
-            </TabsContent>
-        </Tabs>
+        <div className="flex items-center space-x-2">
+            <Textarea
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Enter your query here..."
+              className="min-h-[100px] flex-grow"
+              disabled={loading}
+            />
+             <Button onClick={handleTextSubmit} disabled={!query || loading} size="icon" aria-label="Submit text query">
+                {loading ? <Loader2 className="animate-spin" /> : <Send />}
+              </Button>
+              <Button 
+                onClick={handleMicClick}
+                disabled={loading}
+                size="icon"
+                variant={isRecording ? 'destructive' : 'outline'}
+                aria-label="Submit audio query"
+              >
+                {isRecording ? <Loader2 className="animate-pulse" /> : <Mic />}
+              </Button>
+        </div>
 
         {(loading || result || audioResponseUri) && (
           <div className="mt-6 p-4 bg-accent/20 border rounded-lg">

@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -17,6 +18,7 @@ const GetSchemeInformationInputSchema = z.object({
     title: z.string(),
     content: z.string()
   })).describe('Array of government scheme documents to use for RAG.'),
+  language: z.string().describe("The language for the response (e.g., 'English', 'Kannada', 'Hindi')."),
 });
 export type GetSchemeInformationInput = z.infer<typeof GetSchemeInformationInputSchema>;
 
@@ -33,7 +35,7 @@ const prompt = ai.definePrompt({
   name: 'getSchemeInformationPrompt',
   input: {schema: GetSchemeInformationInputSchema},
   output: {schema: GetSchemeInformationOutputSchema},
-  prompt: `A farmer asked: "{{schemeQuery}}". Based on the following government scheme documents, explain the relevant schemes in simple terms, list eligibility requirements, and provide direct links to application portals. If no relevant scheme is found, state that.\n\nDocuments:\n{{#each schemeDocuments}}Title: {{this.title}}\nContent: {{this.content}}\n\n---\n\n{{/each}}\n\nPlease ensure your response is in clear, concise, and easy for a farmer to understand Kannada.`,
+  prompt: `A farmer asked: "{{schemeQuery}}". Based on the following government scheme documents, explain the relevant schemes in simple terms, list eligibility requirements, and provide direct links to application portals. If no relevant scheme is found, state that.\n\nDocuments:\n{{#each schemeDocuments}}Title: {{this.title}}\nContent: {{this.content}}\n\n---\n\n{{/each}}\n\nPlease ensure your response is in clear, concise, and easy for a farmer to understand {{language}}.`,
 });
 
 const getSchemeInformationFlow = ai.defineFlow(

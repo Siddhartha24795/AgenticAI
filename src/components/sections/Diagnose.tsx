@@ -12,12 +12,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
-import { Loader2, Upload, History, Mic, AudioLines, Text } from 'lucide-react';
+import { Loader2, Upload, History, Mic, Send } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '../ui/skeleton';
 import { useAuth } from '@/hooks/use-auth';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '../ui/textarea';
+import { useLanguage } from '@/hooks/use-language';
 
 interface Diagnosis {
   id: string;
@@ -28,6 +28,7 @@ interface Diagnosis {
 
 export default function DiagnoseComponent() {
   const { user, isAuthReady } = useAuth();
+  const { languageCode, languagePrompt } = useLanguage();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [textQuery, setTextQuery] = useState('');
@@ -84,7 +85,6 @@ export default function DiagnoseComponent() {
       } else {
          toast({ title: "Error Fetching History", description: description, variant: "destructive" });
       }
-
       setHistoryLoading(false);
     });
 
@@ -100,7 +100,7 @@ export default function DiagnoseComponent() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 4 * 1024 * 1024) { // 4MB limit for Gemini API
+      if (file.size > 4 * 1024 * 1024) { // 4MB limit
         toast({ title: "File too large", description: "Please upload an image smaller than 4MB.", variant: "destructive"});
         return;
       }
@@ -115,8 +115,8 @@ export default function DiagnoseComponent() {
     }
   };
 
-  const handleDiagnose = async (mode: 'text' | 'audio' = 'text') => {
-    if ((!imageFile && !textQuery) || !user) {
+  const handleDiagnose = async (query: string) => {
+    if ((!imageFile && !query) || !user) {
       toast({ title: "Error", description: "Please upload an image or enter a query.", variant: "destructive" });
       return;
     }
@@ -128,7 +128,8 @@ export default function DiagnoseComponent() {
     try {
       const input = {
           photoDataUri: imagePreview || undefined,
-          textQuery: textQuery || undefined,
+          textQuery: query || undefined,
+          language: languagePrompt,
       }
       const result = await analyzePlantImage(input);
       const diagnosisText = result.diagnosis;
@@ -145,10 +146,8 @@ export default function DiagnoseComponent() {
       }
       toast({ title: "Success", description: "Plant analysis complete." });
 
-      if (mode === 'audio') {
-          const speechResult = await textToSpeech({ text: diagnosisText });
-          setAudioResponseUri(speechResult.audioDataUri);
-      }
+      const speechResult = await textToSpeech({ text: diagnosisText });
+      setAudioResponseUri(speechResult.audioDataUri);
 
     } catch(e) {
         const error = e as Error;
@@ -158,6 +157,10 @@ export default function DiagnoseComponent() {
     } finally {
       setLoading(false);
     }
+  };
+  
+  const handleTextSubmit = () => {
+    handleDiagnose(textQuery);
   };
   
   const handleMicClick = () => {
@@ -174,24 +177,25 @@ export default function DiagnoseComponent() {
     }
 
     recognitionRef.current = new SpeechRecognition();
-    recognitionRef.current.lang = 'kn-IN'; // Kannada
+    recognitionRef.current.lang = languageCode;
     recognitionRef.current.interimResults = false;
     recognitionRef.current.maxAlternatives = 1;
 
     recognitionRef.current.onstart = () => {
       setIsRecording(true);
       setTextQuery('');
-      toast({ title: "Listening...", description: "Please speak your query in Kannada."});
+      toast({ title: "Listening...", description: `Please speak your query in ${languagePrompt}.`});
     };
 
     recognitionRef.current.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
       setTextQuery(transcript);
+      handleDiagnose(transcript);
     };
 
     recognitionRef.current.onerror = (event: any) => {
-      console.error("Speech recognition error", event.error);
       if (event.error !== 'no-speech') {
+        console.error("Speech recognition error", event.error);
         toast({ title: "Speech Error", description: `An error occurred: ${event.error}`, variant: "destructive" });
       }
       setIsRecording(false);
@@ -199,48 +203,41 @@ export default function DiagnoseComponent() {
     
     recognitionRef.current.onend = () => {
       setIsRecording(false);
-      // We need a way to access the final transcript here as state update might not be complete.
-      // A common pattern is to use a ref or check the event if available.
-      // For now, let's assume textQuery state might not be the latest.
-      // A better way is to pass the transcript from onresult to onend.
-      // But since that's not direct, we'll check the final transcript if possible.
-      // A simple check on textQuery will be done for now.
-      if (textQuery) {
-          handleDiagnose('audio');
-      }
     };
 
     recognitionRef.current.start();
   };
+  
+  const renderSkeletons = () => (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        <Card>
+            <CardHeader>
+                <Skeleton className="h-8 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <Skeleton className="h-56 w-full" />
+                <Skeleton className="h-10 w-full" />
+            </CardContent>
+        </Card>
+        <Card>
+            <CardHeader>
+                <Skeleton className="h-8 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+            </CardHeader>
+            <CardContent>
+                <div className="space-y-4">
+                    <Skeleton className="h-20 w-full" />
+                    <Skeleton className="h-20 w-full" />
+                    <Skeleton className="h-20 w-full" />
+                </div>
+            </CardContent>
+        </Card>
+    </div>
+  );
 
   if (!isAuthReady) {
-    return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            <Card>
-                <CardHeader>
-                    <Skeleton className="h-8 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <Skeleton className="h-56 w-full" />
-                    <Skeleton className="h-10 w-full" />
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader>
-                    <Skeleton className="h-8 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                </CardHeader>
-                <CardContent>
-                    <div className="space-y-4">
-                        <Skeleton className="h-20 w-full" />
-                        <Skeleton className="h-20 w-full" />
-                        <Skeleton className="h-20 w-full" />
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
-    );
+    return renderSkeletons();
   }
 
   return (
@@ -248,65 +245,54 @@ export default function DiagnoseComponent() {
       <Card>
         <CardHeader>
           <CardTitle className="font-headline text-2xl text-primary">Diagnose Crop Disease</CardTitle>
-          <CardDescription>Upload a photo or use your voice for an AI-powered diagnosis.</CardDescription>
+          <CardDescription>Upload a photo, then ask a question via text or voice.</CardDescription>
         </CardHeader>
-        <CardContent>
-            <Tabs defaultValue="text">
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="text"><Text className="mr-2"/>Text Query</TabsTrigger>
-                    <TabsTrigger value="audio"><AudioLines className="mr-2"/>Audio Query</TabsTrigger>
-                </TabsList>
-                <TabsContent value="text" className="space-y-6 pt-4">
-                     <div
-                        className="border-2 border-dashed border-muted-foreground/50 rounded-lg p-8 text-center cursor-pointer hover:bg-accent/20 transition-colors"
-                        onClick={() => fileInputRef.current?.click()}
-                      >
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageChange}
-                          ref={fileInputRef}
-                          className="hidden"
-                        />
-                        {imagePreview ? (
-                            <div className="relative w-full h-48">
-                                <Image src={imagePreview} alt="Plant Preview" layout="fill" objectFit="contain" className="rounded-md" />
-                            </div>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center space-y-2 text-muted-foreground">
-                            <Upload className="w-12 h-12" />
-                            <p>Click to upload or drag and drop image (optional)</p>
-                            <p className="text-xs">PNG, JPG, etc. up to 4MB</p>
-                          </div>
-                        )}
-                      </div>
-                      <Textarea 
-                        value={textQuery}
-                        onChange={(e) => setTextQuery(e.target.value)}
-                        placeholder="Or describe the issue with your plant..."
-                        className="min-h-[100px]"
-                      />
-                      <Button onClick={() => handleDiagnose('text')} disabled={(!imageFile && !textQuery) || loading || !isAuthReady || !user} className="w-full">
-                        {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                        {loading ? 'Analyzing...' : 'Diagnose Plant'}
-                      </Button>
-                </TabsContent>
-                <TabsContent value="audio" className="space-y-6 pt-4">
-                    <div className="flex flex-col items-center justify-center space-y-4 p-8 border-2 border-dashed border-muted-foreground/50 rounded-lg">
-                         <p className="text-center text-muted-foreground">Press the button and speak in Kannada to ask about your crop.</p>
-                         <Button
-                            onClick={handleMicClick}
-                            disabled={loading || !isAuthReady || !user}
-                            size="lg"
-                            className={`rounded-full w-24 h-24 ${isRecording ? 'bg-red-500 hover:bg-red-600 animate-pulse' : ''}`}
-                          >
-                           {loading ? <Loader2 className="h-10 w-10 animate-spin" /> : <Mic className="w-10 h-10" />}
-                          </Button>
-                          <p className="text-sm text-muted-foreground h-4">{isRecording ? "Recording..." : (loading ? "Processing..." : "Tap to speak")}</p>
+        <CardContent className="space-y-6">
+            <div
+                className="border-2 border-dashed border-muted-foreground/50 rounded-lg p-8 text-center cursor-pointer hover:bg-accent/20 transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+            >
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  ref={fileInputRef}
+                  className="hidden"
+                />
+                {imagePreview ? (
+                    <div className="relative w-full h-48">
+                        <Image src={imagePreview} alt="Plant Preview" layout="fill" objectFit="contain" className="rounded-md" />
                     </div>
-                    {textQuery && !loading && <p className="text-center text-sm text-muted-foreground italic">You said: "{textQuery}"</p>}
-                </TabsContent>
-            </Tabs>
+                ) : (
+                  <div className="flex flex-col items-center justify-center space-y-2 text-muted-foreground">
+                    <Upload className="w-12 h-12" />
+                    <p>Click to upload or drag and drop image</p>
+                    <p className="text-xs">PNG, JPG, etc. up to 4MB</p>
+                  </div>
+                )}
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Textarea 
+                value={textQuery}
+                onChange={(e) => setTextQuery(e.target.value)}
+                placeholder="Describe the issue or ask a question..."
+                className="min-h-[60px] flex-grow"
+                disabled={loading}
+              />
+              <Button onClick={handleTextSubmit} disabled={(!imageFile && !textQuery) || loading || !user} size="icon" aria-label="Submit text query">
+                {loading ? <Loader2 className="animate-spin" /> : <Send />}
+              </Button>
+              <Button 
+                onClick={handleMicClick}
+                disabled={loading || !user}
+                size="icon"
+                variant={isRecording ? 'destructive' : 'outline'}
+                aria-label="Submit audio query"
+              >
+                {isRecording ? <Loader2 className="animate-pulse" /> : <Mic />}
+              </Button>
+            </div>
           
           {(loading || diagnosisResult || audioResponseUri) && (
             <div className="mt-6 p-4 bg-accent/20 border rounded-lg">
@@ -339,7 +325,7 @@ export default function DiagnoseComponent() {
                 <Skeleton className="h-20 w-full" />
               </div>
             ) : history.length === 0 ? (
-              <p className="text-muted-foreground text-center pt-10">No diagnosis history found. Please log in to see your history.</p>
+              <p className="text-muted-foreground text-center pt-10">No diagnosis history found. Log in to see history.</p>
             ) : (
               <div className="space-y-4">
                 {history.map((entry) => (
