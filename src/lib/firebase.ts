@@ -3,29 +3,36 @@ import { initializeApp, getApp, getApps, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 
-let app: FirebaseApp;
-let auth: Auth;
-let db: Firestore;
-let appId: string;
-let initialAuthToken: string | null;
-
+let app: FirebaseApp | null = null;
+let auth: Auth | null = null;
+let db: Firestore | null = null;
+let appId: string | null = null;
+let initialAuthToken: string | null = null;
 
 function initializeFirebase() {
-    if (typeof window !== 'undefined' && !getApps().length) {
+    if (typeof window === 'undefined' || app) {
+        return;
+    }
+
+    if (getApps().length) {
+        app = getApp();
+    } else {
         const firebaseConfigStr = (window as any).__firebase_config;
         if (firebaseConfigStr) {
-            const firebaseConfig = JSON.parse(firebaseConfigStr);
-            app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-            appId = (window as any).__app_id || 'default-app-id';
-            initialAuthToken = (window as any).__initial_auth_token || null;
+            try {
+                const firebaseConfig = JSON.parse(firebaseConfigStr);
+                app = initializeApp(firebaseConfig);
+            } catch (e) {
+                console.error("Failed to parse Firebase config:", e);
+                return; 
+            }
         } else {
-            // Config not available yet, do nothing.
-            // It might be available on a subsequent call.
+            // Config not available yet.
+            return;
         }
-    } else if (getApps().length) {
-        app = getApp();
+    }
+
+    if (app) {
         auth = getAuth(app);
         db = getFirestore(app);
         appId = (window as any).__app_id || 'default-app-id';
@@ -33,32 +40,33 @@ function initializeFirebase() {
     }
 }
 
-// Call it once to try initializing
-initializeFirebase();
-
-// Export getters that will ensure initialization
-function getFirebaseAuth() {
-    if (!auth) initializeFirebase();
-    if (!auth) console.error("Firebase Auth could not be initialized.");
+function getFirebaseAuth(): Auth | null {
+    if (!auth) {
+        initializeFirebase();
+    }
     return auth;
 }
 
-function getFirebaseDb() {
-    if (!db) initializeFirebase();
-    if (!db) console.error("Firestore could not be initialized.");
+function getFirebaseDb(): Firestore | null {
+    if (!db) {
+        initializeFirebase();
+    }
     return db;
 }
 
-function getFirebaseAppId() {
-    if (!appId) initializeFirebase();
+function getFirebaseAppId(): string | null {
+    if (!appId) {
+        initializeFirebase();
+    }
     return appId;
 }
 
-function getInitialAuthToken() {
-    if (initialAuthToken === undefined) initializeFirebase();
+function getInitialAuthToken(): string | null {
+    if (initialAuthToken === null) {
+        initializeFirebase();
+    }
     return initialAuthToken;
 }
-
 
 export { 
     getFirebaseAuth, 

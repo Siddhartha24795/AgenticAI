@@ -12,17 +12,17 @@ export function useAuth() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const auth = getFirebaseAuth();
+    // getFirebaseAuth will initialize if needed
+    const auth = getFirebaseAuth(); 
     if (!auth) {
-        // Try again in a bit, firebase might not be ready
-        const timeoutId = setTimeout(() => setIsAuthReady(false), 100);
-        return () => clearTimeout(timeoutId);
+        // This can happen if the firebase config is not yet available.
+        // The effect will re-run once the component re-renders.
+        return;
     };
     
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUser(user);
-        setIsAuthReady(true);
       } else {
         try {
           const initialAuthToken = getInitialAuthToken();
@@ -38,13 +38,13 @@ export function useAuth() {
             description: (error as Error).message,
             variant: "destructive",
           });
-          setIsAuthReady(true); // Mark as ready even on error
         }
       }
+      setIsAuthReady(true);
     });
 
     return () => unsubscribe();
-  }, [toast, isAuthReady]); // Re-run if auth wasn't ready
+  }, [toast]);
 
   return { user, isAuthReady };
 }
