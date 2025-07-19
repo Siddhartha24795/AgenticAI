@@ -13,6 +13,7 @@ import Image from 'next/image';
 import { Loader2, Upload, History } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '../ui/skeleton';
+import { useAuth } from '@/hooks/use-auth';
 
 interface Diagnosis {
   id: string;
@@ -21,11 +22,8 @@ interface Diagnosis {
   timestamp: Timestamp;
 }
 
-interface DiagnoseComponentProps {
-  user: User | null;
-}
-
-export default function DiagnoseComponent({ user }: DiagnoseComponentProps) {
+export default function DiagnoseComponent() {
+  const { user, isAuthReady } = useAuth();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [diagnosisResult, setDiagnosisResult] = useState<string | null>(null);
@@ -36,6 +34,8 @@ export default function DiagnoseComponent({ user }: DiagnoseComponentProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    if (!isAuthReady) return;
+
     if (!user || !db) {
       setHistoryLoading(false);
       return;
@@ -58,7 +58,7 @@ export default function DiagnoseComponent({ user }: DiagnoseComponentProps) {
     });
 
     return () => unsubscribe();
-  }, [user, toast]);
+  }, [user, isAuthReady, toast]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -109,6 +109,36 @@ export default function DiagnoseComponent({ user }: DiagnoseComponentProps) {
       setLoading(false);
     }
   };
+
+  if (!isAuthReady) {
+    return (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-8 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <Skeleton className="h-56 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-8 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-4">
+                        <Skeleton className="h-20 w-full" />
+                        <Skeleton className="h-20 w-full" />
+                        <Skeleton className="h-20 w-full" />
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
