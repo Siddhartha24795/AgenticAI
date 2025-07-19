@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { onAuthStateChanged, signInAnonymously, signInWithCustomToken, type User, type Auth } from 'firebase/auth';
+import { onAuthStateChanged, signInAnonymously, signInWithCustomToken, type User } from 'firebase/auth';
 import { getFirebaseAuth, getInitialAuthToken } from '@/lib/firebase';
 import { useToast } from "@/hooks/use-toast";
 
