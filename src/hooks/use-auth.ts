@@ -12,50 +12,80 @@ export function useAuth() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const auth = getFirebaseAuth();
-    if (!auth) {
-        // This can happen if the firebase config is not yet available on the client.
-        // The effect will re-run once the component re-renders and it is.
-        // A better approach might be to wait for an event or use a context provider
-        // that initializes Firebase at the top level of the app.
-        const timer = setTimeout(() => {
-          if (!getFirebaseAuth()) {
-            setIsAuthReady(true); // Unblock UI even if firebase is failing
-            console.error("Firebase config not available after delay.");
-             toast({
-              title: "Configuration Error",
-              description: "Could not initialize Firebase. Please check your configuration.",
+    // Function to handle the authentication logic
+    const initAuth = () => {
+      const auth = getFirebaseAuth();
+      if (!auth) {
+        // If auth isn't ready, we shouldn't proceed.
+        // The check for config readiness below should prevent this.
+        console.error("Firebase Auth could not be initialized. This should not happen.");
+        setIsAuthReady(true); // Unblock UI
+        return;
+      }
+
+      const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+        if (currentUser) {
+          setUser(currentUser);
+        } else {
+          try {
+            const initialAuthToken = getInitialAuthToken();
+            if (initialAuthToken) {
+              await signInWithCustomToken(auth, initialAuthToken);
+            } else {
+              await signInAnonymously(auth);
+            }
+          } catch (error) {
+            console.error("Firebase authentication error:", error);
+            toast({
+              title: "Authentication Failed",
+              description: (error as Error).message,
               variant: "destructive",
             });
           }
-        }, 3000); // Wait 3 seconds and check again.
-        return () => clearTimeout(timer);
-    };
-    
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setUser(user);
-      } else {
-        try {
-          const initialAuthToken = getInitialAuthToken();
-          if (initialAuthToken) {
-            await signInWithCustomToken(auth, initialAuthToken);
-          } else {
-            await signInAnonymously(auth);
-          }
-        } catch (error) {
-          console.error("Firebase authentication error:", error);
-          toast({
-            title: "Authentication Failed",
-            description: (error as Error).message,
-            variant: "destructive",
-          });
         }
-      }
-      setIsAuthReady(true);
-    });
+        setIsAuthReady(true);
+      });
 
-    return () => unsubscribe();
+      return unsubscribe;
+    };
+
+    // Check if the Firebase config is ready on the window object.
+    // If not, wait for it. This is crucial to avoid race conditions.
+    if (typeof window !== 'undefined' && !(window as any).__firebase_config) {
+      const interval = setInterval(() => {
+        if ((window as any).__firebase_config) {
+          clearInterval(interval);
+          initAuth();
+        }
+      }, 100); // Check every 100ms
+
+      // Timeout to prevent an infinite loop
+      const timeout = setTimeout(() => {
+        clearInterval(interval);
+        if (!(window as any).__firebase_config) {
+           setIsAuthReady(true); // Unblock UI
+           console.error("Firebase config not available after delay.");
+           toast({
+             title: "Configuration Error",
+             description: "Could not initialize Firebase. Please check your configuration.",
+             variant: "destructive",
+           });
+        }
+      }, 5000); // 5-second timeout
+
+      return () => {
+        clearInterval(interval);
+        clearTimeout(timeout);
+      };
+    } else {
+      // Config is ready, initialize auth immediately.
+      const unsubscribe = initAuth();
+      return () => {
+        if (unsubscribe) {
+          unsubscribe();
+        }
+      };
+    }
   }, [toast]);
 
   return { user, isAuthReady };
