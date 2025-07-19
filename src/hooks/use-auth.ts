@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged, signInAnonymously, signInWithCustomToken, type User } from 'firebase/auth';
-import { auth, initialAuthToken } from '@/lib/firebase';
+import { getFirebaseAuth, getInitialAuthToken } from '@/lib/firebase';
 import { useToast } from "@/hooks/use-toast";
 
 export function useAuth() {
@@ -12,9 +12,11 @@ export function useAuth() {
   const { toast } = useToast();
 
   useEffect(() => {
+    const auth = getFirebaseAuth();
     if (!auth) {
-        setIsAuthReady(true);
-        return;
+        // Try again in a bit, firebase might not be ready
+        const timeoutId = setTimeout(() => setIsAuthReady(false), 100);
+        return () => clearTimeout(timeoutId);
     };
     
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -23,6 +25,7 @@ export function useAuth() {
         setIsAuthReady(true);
       } else {
         try {
+          const initialAuthToken = getInitialAuthToken();
           if (initialAuthToken) {
             await signInWithCustomToken(auth, initialAuthToken);
           } else {
@@ -41,7 +44,7 @@ export function useAuth() {
     });
 
     return () => unsubscribe();
-  }, [toast]);
+  }, [toast, isAuthReady]); // Re-run if auth wasn't ready
 
   return { user, isAuthReady };
 }

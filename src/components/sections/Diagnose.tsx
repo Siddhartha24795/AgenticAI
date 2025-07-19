@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import type { User } from 'firebase/auth';
-import { db, appId } from '@/lib/firebase';
+import { getFirebaseDb, getFirebaseAppId } from '@/lib/firebase';
 import { collection, addDoc, query, onSnapshot, serverTimestamp, orderBy, type Timestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { analyzePlantImage } from '@/ai/flows/analyze-plant-image';
@@ -36,6 +36,9 @@ export default function DiagnoseComponent() {
 
   useEffect(() => {
     if (!isAuthReady) return;
+
+    const db = getFirebaseDb();
+    const appId = getFirebaseAppId();
 
     if (!user || !db) {
       setHistoryLoading(false);
@@ -93,6 +96,8 @@ export default function DiagnoseComponent() {
       const diagnosisText = result.diagnosis;
       setDiagnosisResult(diagnosisText);
 
+      const db = getFirebaseDb();
+      const appId = getFirebaseAppId();
       if (db) {
           await addDoc(collection(db, `artifacts/${appId}/users/${user.uid}/diagnoses`), {
               imageUrl: dataUri,
