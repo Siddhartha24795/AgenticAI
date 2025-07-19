@@ -123,7 +123,6 @@ export default function SchemesComponent() {
         console.error("Speech recognition error", event.error);
         toast({ title: "Speech Error", description: `An error occurred: ${event.error}`, variant: "destructive" });
       }
-      setIsRecording(false);
     };
 
     recognitionRef.current.onend = () => {

@@ -198,7 +198,6 @@ export default function DiagnoseComponent() {
         console.error("Speech recognition error", event.error);
         toast({ title: "Speech Error", description: `An error occurred: ${event.error}`, variant: "destructive" });
       }
-      setIsRecording(false);
     };
     
     recognitionRef.current.onend = () => {
@@ -299,7 +298,7 @@ export default function DiagnoseComponent() {
               <h3 className="text-lg font-headline font-semibold text-primary mb-2">Diagnosis Result:</h3>
               {loading && !diagnosisResult && <Skeleton className="h-20 w-full" />}
               {diagnosisResult && (
-                <div className="text-sm text-foreground whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: diagnosisResult.replace(/\n/g, '<br/>') }} />
+                <div className="text-sm text-foreground whitespace-pre-wrap">{diagnosisResult}</div>
               )}
                {audioResponseUri && (
                 <div className="mt-4">

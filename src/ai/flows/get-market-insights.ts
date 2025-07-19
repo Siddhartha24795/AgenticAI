@@ -33,7 +33,9 @@ const prompt = ai.definePrompt({
   input: {schema: GetMarketInsightsInputSchema},
   output: {schema: GetMarketInsightsOutputSchema},
   prompt: `A farmer asked: "{{cropQuery}}". I have fetched the following market data: {{{marketData}}}.
-          Please analyze this data and provide a simple, actionable summary for the farmer, guiding their selling decisions. Focus on the price of "tomatoes" if mentioned, otherwise generalize. Respond in clear, easy-to-understand {{language}}.`,
+          Please analyze this data and provide a simple, actionable summary for the farmer, guiding their selling decisions. Focus on the price of "tomatoes" if mentioned, otherwise generalize. 
+          
+          IMPORTANT: You must respond in clear, easy-to-understand {{language}}.`,
 });
 
 const getMarketInsightsFlow = ai.defineFlow(

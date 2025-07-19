@@ -107,7 +107,6 @@ export default function MarketComponent() {
         console.error("Speech recognition error", event.error);
         toast({ title: "Speech Error", description: `An error occurred: ${event.error}`, variant: "destructive" });
       }
-      setIsRecording(false);
     };
 
     recognitionRef.current.onend = () => {
@@ -151,7 +150,7 @@ export default function MarketComponent() {
             <h3 className="text-lg font-headline font-semibold text-primary mb-2">Market Analysis:</h3>
             {loading && !result && <Skeleton className="h-20 w-full" />}
             {result && (
-                <div className="text-foreground whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: result.replace(/\n/g, '<br />') }}></div>
+                <div className="text-foreground whitespace-pre-wrap">{result}</div>
             )}
             {audioResponseUri && (
                 <div className="mt-4">

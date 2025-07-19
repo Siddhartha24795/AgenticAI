@@ -44,6 +44,8 @@ const prompt = ai.definePrompt({
   output: {schema: AnalyzePlantImageOutputSchema},
   prompt: `You are an expert botanist who speaks {{language}}. Analyze this plant and provide a diagnosis of potential diseases or pests, along with actionable remedies. Respond in {{language}}.
   
+  IMPORTANT: Your response must be in simple, clear language that a farmer can easily understand. Do not use any markdown formatting like ** or *. Write in plain text paragraphs.
+
   {{#if textQuery}}
   User Query: {{{textQuery}}}
   {{/if}}
