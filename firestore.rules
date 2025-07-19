@@ -1,10 +1,17 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow users to read and write only their own diagnosis documents.
-    // The path includes the app ID to ensure multi-tenancy if this project is used as a template.
-    match /artifacts/{appId}/users/{userId}/diagnoses/{docId} {
+    // By default, deny all reads and writes
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // This rule allows a logged-in user to create, read, update, and delete
+    // documents inside their own 'diagnoses' subcollection.
+    // The path exactly matches the query in the application.
+    match /artifacts/{appId}/users/{userId}/diagnoses/{diagnosisId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }
