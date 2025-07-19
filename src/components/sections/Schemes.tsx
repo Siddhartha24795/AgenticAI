@@ -1,13 +1,13 @@
 
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { getSchemeInformation } from '@/ai/flows/get-scheme-information';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Mic, Send } from 'lucide-react';
+import { Loader2, Mic, Send, Play } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '../ui/skeleton';
 import { useLanguage } from '@/hooks/use-language';
@@ -55,14 +55,8 @@ export default function SchemesComponent() {
   const [isRecording, setIsRecording] = useState(false);
   const { toast } = useToast();
   const recognitionRef = useRef<any>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const { languageCode, languagePrompt } = useLanguage();
-  
-  useEffect(() => {
-    if (audioResponseUri && audioRef.current) {
-        audioRef.current.play().catch(e => console.error("Audio playback failed:", e));
-    }
-  }, [audioResponseUri]);
 
   const handleSearch = async (textQuery: string) => {
     if (!textQuery.trim()) {
@@ -74,23 +68,25 @@ export default function SchemesComponent() {
     setAudioResponseUri(null);
 
     try {
-      const searchPromise = getSchemeInformation({
-        schemeQuery: textQuery,
-        schemeDocuments: GOVERNMENT_SCHEME_DOCS,
-        language: languagePrompt,
-      });
+        const searchInput = {
+            schemeQuery: textQuery,
+            schemeDocuments: GOVERNMENT_SCHEME_DOCS,
+            language: languagePrompt,
+        };
 
-      const searchResult = await searchPromise;
-      const schemeInformation = searchResult.schemeInformation;
-      setResult(schemeInformation);
+        const searchPromise = getSchemeInformation(searchInput);
 
-      const textForSpeech = cleanTextForSpeech(schemeInformation);
-      const speechPromise = textToSpeech({ text: textForSpeech });
-      
-      toast({ title: "Success", description: "Scheme information retrieved." });
-      
-      const speechResult = await speechPromise;
-      setAudioResponseUri(speechResult.audioDataUri);
+        const searchResult = await searchPromise;
+        const schemeInformation = searchResult.schemeInformation;
+        setResult(schemeInformation);
+        
+        const textForSpeech = cleanTextForSpeech(schemeInformation);
+        const speechPromise = textToSpeech({ text: textForSpeech });
+        
+        toast({ title: "Success", description: "Scheme information retrieved." });
+        
+        const speechResult = await speechPromise;
+        setAudioResponseUri(speechResult.audioDataUri);
 
     } catch (error) {
       console.error("Error getting scheme info:", error);
@@ -178,17 +174,27 @@ export default function SchemesComponent() {
               </Button>
         </div>
 
-        {(loading || result || audioResponseUri) && (
+        {(loading || result) && (
           <div className="mt-6 p-4 bg-accent/20 border rounded-lg">
-            <h3 className="text-lg font-headline font-semibold text-primary mb-2">Government Scheme Information:</h3>
+            <div className="flex justify-between items-center mb-2">
+                <h3 className="text-lg font-headline font-semibold text-primary">Government Scheme Information:</h3>
+                {audioResponseUri && !loading && (
+                    <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => audioRef.current?.play()}
+                    >
+                    <Play className="mr-2 h-4 w-4" />
+                    Play Audio
+                    </Button>
+                )}
+            </div>
              {loading && !result && <Skeleton className="h-20 w-full" />}
             {result && (
                 <div className="text-foreground whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: result.replace(/\n/g, '<br />').replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">$1</a>')}}></div>
             )}
              {audioResponseUri && (
-                <div className="mt-4">
-                    <audio ref={audioRef} src={audioResponseUri} controls className="w-full" />
-                </div>
+                <audio ref={audioRef} src={audioResponseUri} className="hidden" />
             )}
             <p className="mt-4 text-xs text-muted-foreground">
               <strong>Note:</strong> Scheme information is based on a predefined set of documents for this demo.
@@ -199,3 +205,5 @@ export default function SchemesComponent() {
     </Card>
   );
 }
+
+    

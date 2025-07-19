@@ -1,13 +1,13 @@
 
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { getMarketInsights } from '@/ai/flows/get-market-insights';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Mic, Send } from 'lucide-react';
+import { Loader2, Mic, Send, Play } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '../ui/skeleton';
 import { useLanguage } from '@/hooks/use-language';
@@ -22,14 +22,8 @@ export default function MarketComponent() {
   const [isRecording, setIsRecording] = useState(false);
   const { toast } = useToast();
   const recognitionRef = useRef<any>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const { languageCode, languagePrompt } = useLanguage();
-  
-  useEffect(() => {
-    if (audioResponseUri && audioRef.current) {
-        audioRef.current.play().catch(e => console.error("Audio playback failed:", e));
-    }
-  }, [audioResponseUri]);
 
   const handleAnalyze = async (textQuery: string) => {
     if (!textQuery.trim()) {
@@ -47,18 +41,20 @@ export default function MarketComponent() {
       }
       const marketData = await marketResponse.json();
 
-      const analysisPromise = getMarketInsights({
+      const insightsInput = {
         cropQuery: textQuery,
         marketData: JSON.stringify(marketData),
         language: languagePrompt,
-      });
+      };
+
+      const analysisPromise = getMarketInsights(insightsInput);
 
       // Fetch text result first to display it ASAP
       const analysisResult = await analysisPromise;
       const marketSummary = analysisResult.marketSummary;
       setResult(marketSummary);
 
-      // Then fetch audio
+      // Then fetch audio in parallel
       const speechPromise = textToSpeech({ text: marketSummary });
       
       toast({ title: "Success", description: "Market analysis complete." });
@@ -152,17 +148,27 @@ export default function MarketComponent() {
               </Button>
         </div>
         
-        {(loading || result || audioResponseUri) && (
+        {(loading || result) && (
           <div className="mt-6 p-4 bg-accent/20 border rounded-lg">
-            <h3 className="text-lg font-headline font-semibold text-primary mb-2">Market Analysis:</h3>
+            <div className="flex justify-between items-center mb-2">
+                <h3 className="text-lg font-headline font-semibold text-primary">Market Analysis:</h3>
+                {audioResponseUri && !loading && (
+                    <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => audioRef.current?.play()}
+                    >
+                    <Play className="mr-2 h-4 w-4" />
+                    Play Audio
+                    </Button>
+                )}
+            </div>
             {loading && !result && <Skeleton className="h-20 w-full" />}
             {result && (
                 <div className="text-foreground whitespace-pre-wrap">{result}</div>
             )}
             {audioResponseUri && (
-                <div className="mt-4">
-                    <audio ref={audioRef} src={audioResponseUri} controls className="w-full" />
-                </div>
+                <audio ref={audioRef} src={audioResponseUri} className="hidden" />
             )}
             <p className="mt-4 text-xs text-muted-foreground">
               <strong>Note:</strong> Market data is from a dummy source for demonstration purposes.
@@ -173,3 +179,5 @@ export default function MarketComponent() {
     </Card>
   );
 }
+
+    

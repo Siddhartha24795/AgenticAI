@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
-import { Loader2, Upload, History, Mic, Send } from 'lucide-react';
+import { Loader2, Upload, History, Mic, Send, Play } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '../ui/skeleton';
 import { useAuth } from '@/hooks/use-auth';
@@ -40,7 +40,7 @@ export default function DiagnoseComponent() {
   const [history, setHistory] = useState<Diagnosis[]>([]);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
@@ -91,12 +91,6 @@ export default function DiagnoseComponent() {
     return () => unsubscribe();
   }, [user, isAuthReady, toast]);
 
-  useEffect(() => {
-    if (audioResponseUri && audioRef.current) {
-        audioRef.current.play().catch(e => console.error("Audio playback failed:", e));
-    }
-  }, [audioResponseUri]);
-
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -132,11 +126,14 @@ export default function DiagnoseComponent() {
           language: languagePrompt,
       }
       
-      const textResult = await analyzePlantImage(input);
+      const [textResult, speechResult] = await Promise.all([
+        analyzePlantImage(input),
+        textToSpeech({ text: (await analyzePlantImage(input)).diagnosis })
+      ]);
+      
       const diagnosisText = textResult.diagnosis;
       setDiagnosisResult(diagnosisText);
-      
-      const speechPromise = textToSpeech({ text: diagnosisText });
+      setAudioResponseUri(speechResult.audioDataUri);
 
       const db = getFirebaseDb();
       const appId = getFirebaseAppId();
@@ -148,9 +145,6 @@ export default function DiagnoseComponent() {
           }).catch(console.error);
       }
       toast({ title: "Success", description: "Plant analysis complete." });
-
-      const speechResult = await speechPromise;
-      setAudioResponseUri(speechResult.audioDataUri);
 
     } catch(e) {
         const error = e as Error;
@@ -296,17 +290,27 @@ export default function DiagnoseComponent() {
               </Button>
             </div>
           
-          {(loading || diagnosisResult || audioResponseUri) && (
+          {(loading || diagnosisResult) && (
             <div className="mt-6 p-4 bg-accent/20 border rounded-lg">
-              <h3 className="text-lg font-headline font-semibold text-primary mb-2">Diagnosis Result:</h3>
+                <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-lg font-headline font-semibold text-primary">Diagnosis Result:</h3>
+                    {audioResponseUri && !loading && (
+                        <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => audioRef.current?.play()}
+                        >
+                        <Play className="mr-2 h-4 w-4" />
+                        Play Audio
+                        </Button>
+                    )}
+                </div>
               {loading && !diagnosisResult && <Skeleton className="h-20 w-full" />}
               {diagnosisResult && (
                 <div className="text-sm text-foreground whitespace-pre-wrap">{diagnosisResult}</div>
               )}
                {audioResponseUri && (
-                <div className="mt-4">
-                    <audio ref={audioRef} src={audioResponseUri} controls className="w-full" />
-                </div>
+                  <audio ref={audioRef} src={audioResponseUri} className="hidden" />
                 )}
             </div>
           )}
@@ -353,3 +357,5 @@ export default function DiagnoseComponent() {
     </div>
   );
 }
+
+    
