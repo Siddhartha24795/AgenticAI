@@ -18,7 +18,8 @@ const AnalyzePlantImageInputSchema = z.object({
     .string()
     .describe(
       "A photo of a plant, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
-    ),
+    ).optional(),
+  textQuery: z.string().describe("A text query from the user about their plant.").optional(),
 });
 export type AnalyzePlantImageInput = z.infer<typeof AnalyzePlantImageInputSchema>;
 
@@ -26,7 +27,7 @@ const AnalyzePlantImageOutputSchema = z.object({
   diagnosis: z
     .string()
     .describe(
-      'A diagnosis of potential diseases or pests, along with actionable remedies.'
+      'A diagnosis of potential diseases or pests, along with actionable remedies, in Kannada.'
     ),
 });
 export type AnalyzePlantImageOutput = z.infer<typeof AnalyzePlantImageOutputSchema>;
@@ -41,9 +42,15 @@ const prompt = ai.definePrompt({
   name: 'analyzePlantImagePrompt',
   input: {schema: AnalyzePlantImageInputSchema},
   output: {schema: AnalyzePlantImageOutputSchema},
-  prompt: `Analyze this plant image and provide a diagnosis of potential diseases or pests, along with actionable remedies.
+  prompt: `You are an expert botanist who speaks Kannada. Analyze this plant and provide a diagnosis of potential diseases or pests, along with actionable remedies. Respond in Kannada.
+  
+  {{#if textQuery}}
+  User Query: {{{textQuery}}}
+  {{/if}}
 
-  Photo: {{media url=photoDataUri}}`,
+  {{#if photoDataUri}}
+  Photo: {{media url=photoDataUri}}
+  {{/if}}`,
 });
 
 const analyzePlantImageFlow = ai.defineFlow(

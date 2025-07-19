@@ -7,18 +7,21 @@ import { getFirebaseDb, getFirebaseAppId } from '@/lib/firebase';
 import { collection, addDoc, query, onSnapshot, serverTimestamp, orderBy, type Timestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { analyzePlantImage } from '@/ai/flows/analyze-plant-image';
+import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
-import { Loader2, Upload, History } from 'lucide-react';
+import { Loader2, Upload, History, Mic, AudioLines, Text } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '../ui/skeleton';
 import { useAuth } from '@/hooks/use-auth';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '../ui/textarea';
 
 interface Diagnosis {
   id: string;
-  imageUrl: string;
+  imageUrl?: string;
   diagnosis: string;
   timestamp: Timestamp;
 }
@@ -27,12 +30,17 @@ export default function DiagnoseComponent() {
   const { user, isAuthReady } = useAuth();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [textQuery, setTextQuery] = useState('');
   const [diagnosisResult, setDiagnosisResult] = useState<string | null>(null);
+  const [audioResponseUri, setAudioResponseUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(true);
+  const [isRecording, setIsRecording] = useState(false);
   const [history, setHistory] = useState<Diagnosis[]>([]);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     if (!isAuthReady) return;
@@ -59,19 +67,16 @@ export default function DiagnoseComponent() {
       console.error("Error fetching diagnosis history:", error);
       let description = "Could not fetch diagnosis history.";
       
-      // Check for the specific error code that indicates a missing index.
       if (error.code === 'failed-precondition') {
-        // Extract the URL from the error message.
         const urlMatch = error.message.match(/(https?:\/\/[^\s]+)/);
         if (urlMatch) {
           const url = urlMatch[0];
-          // Provide a user-friendly toast with a direct link to create the index.
           description = `Your database needs a new index to show history. <a href="${url}" target="_blank" rel="noopener noreferrer" class="font-bold text-blue-400 underline">Please click here to create it</a>, then refresh the page.`;
            toast({ 
             title: "Database Index Required", 
             description: <div dangerouslySetInnerHTML={{ __html: description }} />,
             variant: "destructive",
-            duration: 30000 // Increase duration to give user time to click
+            duration: 30000 
           });
         } else {
            toast({ title: "Database Error", description: "An index is required. Please check the Firestore console.", variant: "destructive" });
@@ -86,6 +91,12 @@ export default function DiagnoseComponent() {
     return () => unsubscribe();
   }, [user, isAuthReady, toast]);
 
+  useEffect(() => {
+    if (audioResponseUri && audioRef.current) {
+        audioRef.current.play().catch(e => console.error("Audio playback failed:", e));
+    }
+  }, [audioResponseUri]);
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -98,23 +109,28 @@ export default function DiagnoseComponent() {
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
         setDiagnosisResult(null);
+        setAudioResponseUri(null);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleDiagnose = async () => {
-    if (!imageFile || !user) {
-      toast({ title: "Error", description: "Please select an image and ensure you are logged in.", variant: "destructive" });
+  const handleDiagnose = async (mode: 'text' | 'audio' = 'text') => {
+    if ((!imageFile && !textQuery) || !user) {
+      toast({ title: "Error", description: "Please upload an image or enter a query.", variant: "destructive" });
       return;
     }
 
     setLoading(true);
     setDiagnosisResult(null);
-    const dataUri = imagePreview as string;
-
+    setAudioResponseUri(null);
+    
     try {
-      const result = await analyzePlantImage({ photoDataUri: dataUri });
+      const input = {
+          photoDataUri: imagePreview || undefined,
+          textQuery: textQuery || undefined,
+      }
+      const result = await analyzePlantImage(input);
       const diagnosisText = result.diagnosis;
       setDiagnosisResult(diagnosisText);
 
@@ -122,12 +138,18 @@ export default function DiagnoseComponent() {
       const appId = getFirebaseAppId();
       if (db) {
           await addDoc(collection(db, `artifacts/${appId}/users/${user.uid}/diagnoses`), {
-              imageUrl: dataUri,
+              imageUrl: imagePreview || null,
               diagnosis: diagnosisText,
               timestamp: serverTimestamp(),
           });
       }
       toast({ title: "Success", description: "Plant analysis complete." });
+
+      if (mode === 'audio') {
+          const speechResult = await textToSpeech({ text: diagnosisText });
+          setAudioResponseUri(speechResult.audioDataUri);
+      }
+
     } catch(e) {
         const error = e as Error;
         console.error("Error diagnosing plant:", error);
@@ -136,6 +158,51 @@ export default function DiagnoseComponent() {
     } finally {
       setLoading(false);
     }
+  };
+  
+  const handleMicClick = () => {
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      setIsRecording(false);
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast({ title: "Error", description: "Speech recognition is not supported in this browser.", variant: "destructive" });
+      return;
+    }
+
+    recognitionRef.current = new SpeechRecognition();
+    recognitionRef.current.lang = 'kn-IN'; // Kannada
+    recognitionRef.current.interimResults = false;
+    recognitionRef.current.maxAlternatives = 1;
+
+    recognitionRef.current.onstart = () => {
+      setIsRecording(true);
+      setTextQuery('');
+      toast({ title: "Listening...", description: "Please speak your query in Kannada."});
+    };
+
+    recognitionRef.current.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setTextQuery(transcript);
+    };
+
+    recognitionRef.current.onerror = (event: any) => {
+      console.error("Speech recognition error", event.error);
+      toast({ title: "Speech Error", description: `An error occurred: ${event.error}`, variant: "destructive" });
+      setIsRecording(false);
+    };
+    
+    recognitionRef.current.onend = () => {
+      setIsRecording(false);
+      if (textQuery) {
+          handleDiagnose('audio');
+      }
+    };
+
+    recognitionRef.current.start();
   };
 
   if (!isAuthReady) {
@@ -173,41 +240,78 @@ export default function DiagnoseComponent() {
       <Card>
         <CardHeader>
           <CardTitle className="font-headline text-2xl text-primary">Diagnose Crop Disease</CardTitle>
-          <CardDescription>Upload a photo of your plant for an AI-powered diagnosis.</CardDescription>
+          <CardDescription>Upload a photo or use your voice for an AI-powered diagnosis.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div
-            className="border-2 border-dashed border-muted-foreground/50 rounded-lg p-8 text-center cursor-pointer hover:bg-accent/20 transition-colors"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              ref={fileInputRef}
-              className="hidden"
-            />
-            {imagePreview ? (
-                <div className="relative w-full h-64">
-                    <Image src={imagePreview} alt="Plant Preview" layout="fill" objectFit="contain" className="rounded-md" />
-                </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center space-y-2 text-muted-foreground">
-                <Upload className="w-12 h-12" />
-                <p>Click to upload or drag and drop</p>
-                <p className="text-xs">PNG, JPG, etc. up to 4MB</p>
-              </div>
-            )}
-          </div>
-          <Button onClick={handleDiagnose} disabled={!imageFile || loading || !isAuthReady || !user} className="w-full">
-            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            {loading ? 'Analyzing...' : 'Diagnose Plant'}
-          </Button>
-
-          {diagnosisResult && (
+        <CardContent>
+            <Tabs defaultValue="text">
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="text"><Text className="mr-2"/>Text Query</TabsTrigger>
+                    <TabsTrigger value="audio"><AudioLines className="mr-2"/>Audio Query</TabsTrigger>
+                </TabsList>
+                <TabsContent value="text" className="space-y-6 pt-4">
+                     <div
+                        className="border-2 border-dashed border-muted-foreground/50 rounded-lg p-8 text-center cursor-pointer hover:bg-accent/20 transition-colors"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageChange}
+                          ref={fileInputRef}
+                          className="hidden"
+                        />
+                        {imagePreview ? (
+                            <div className="relative w-full h-48">
+                                <Image src={imagePreview} alt="Plant Preview" layout="fill" objectFit="contain" className="rounded-md" />
+                            </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center space-y-2 text-muted-foreground">
+                            <Upload className="w-12 h-12" />
+                            <p>Click to upload or drag and drop image (optional)</p>
+                            <p className="text-xs">PNG, JPG, etc. up to 4MB</p>
+                          </div>
+                        )}
+                      </div>
+                      <Textarea 
+                        value={textQuery}
+                        onChange={(e) => setTextQuery(e.target.value)}
+                        placeholder="Or describe the issue with your plant..."
+                        className="min-h-[100px]"
+                      />
+                      <Button onClick={() => handleDiagnose('text')} disabled={(!imageFile && !textQuery) || loading || !isAuthReady || !user} className="w-full">
+                        {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        {loading ? 'Analyzing...' : 'Diagnose Plant'}
+                      </Button>
+                </TabsContent>
+                <TabsContent value="audio" className="space-y-6 pt-4">
+                    <div className="flex flex-col items-center justify-center space-y-4 p-8 border-2 border-dashed border-muted-foreground/50 rounded-lg">
+                         <p className="text-center text-muted-foreground">Press the button and speak in Kannada to ask about your crop.</p>
+                         <Button
+                            onClick={handleMicClick}
+                            disabled={loading || !isAuthReady || !user}
+                            size="lg"
+                            className={`rounded-full w-24 h-24 ${isRecording ? 'bg-red-500 hover:bg-red-600 animate-pulse' : ''}`}
+                          >
+                           {loading ? <Loader2 className="h-10 w-10 animate-spin" /> : <Mic className="w-10 h-10" />}
+                          </Button>
+                          <p className="text-sm text-muted-foreground h-4">{isRecording ? "Recording..." : (loading ? "Processing..." : "Tap to speak")}</p>
+                    </div>
+                    {textQuery && !loading && <p className="text-center text-sm text-muted-foreground italic">You said: "{textQuery}"</p>}
+                </TabsContent>
+            </Tabs>
+          
+          {(loading || diagnosisResult || audioResponseUri) && (
             <div className="mt-6 p-4 bg-accent/20 border rounded-lg">
               <h3 className="text-lg font-headline font-semibold text-primary mb-2">Diagnosis Result:</h3>
-              <div className="text-sm text-foreground whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: diagnosisResult.replace(/\n/g, '<br/>') }} />
+              {loading && !diagnosisResult && <Skeleton className="h-20 w-full" />}
+              {diagnosisResult && (
+                <div className="text-sm text-foreground whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: diagnosisResult.replace(/\n/g, '<br/>') }} />
+              )}
+               {audioResponseUri && (
+                <div className="mt-4">
+                    <audio ref={audioRef} src={audioResponseUri} controls className="w-full" />
+                </div>
+                )}
             </div>
           )}
         </CardContent>

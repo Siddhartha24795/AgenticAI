@@ -33,7 +33,7 @@ const prompt = ai.definePrompt({
   name: 'getSchemeInformationPrompt',
   input: {schema: GetSchemeInformationInputSchema},
   output: {schema: GetSchemeInformationOutputSchema},
-  prompt: `A farmer asked: "{{schemeQuery}}". Based on the following government scheme documents, explain the relevant schemes in simple terms, list eligibility requirements, and provide direct links to application portals. If no relevant scheme is found, state that.\n\nDocuments:\n{{#each schemeDocuments}}Title: {{this.title}}\nContent: {{this.content}}\n\n---\n\n{{/each}}\n\nPlease ensure your response is clear, concise, and easy for a farmer to understand.`,
+  prompt: `A farmer asked: "{{schemeQuery}}". Based on the following government scheme documents, explain the relevant schemes in simple terms, list eligibility requirements, and provide direct links to application portals. If no relevant scheme is found, state that.\n\nDocuments:\n{{#each schemeDocuments}}Title: {{this.title}}\nContent: {{this.content}}\n\n---\n\n{{/each}}\n\nPlease ensure your response is in clear, concise, and easy for a farmer to understand Kannada.`,
 });
 
 const getSchemeInformationFlow = ai.defineFlow(
