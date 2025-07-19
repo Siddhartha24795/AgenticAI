@@ -1,0 +1,63 @@
+'use client';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Leaf, LineChart, ShieldCheck } from "lucide-react";
+import type { Section } from "@/app/page";
+import type { User } from "firebase/auth";
+
+interface HomeComponentProps {
+    setActiveSection: (section: Section) => void;
+    user: User | null;
+}
+
+export default function HomeComponent({ setActiveSection, user }: HomeComponentProps) {
+    const userName = user?.isAnonymous ? 'Farmer' : 'Siddhartha Mishra';
+    return (
+        <Card className="border-none shadow-none bg-transparent">
+            <CardHeader className="text-center">
+                <CardTitle className="text-4xl font-headline text-primary">Welcome, {userName}!</CardTitle>
+                <CardDescription className="text-lg text-foreground/80 mt-2 max-w-2xl mx-auto">
+                    Your AI-powered personal assistant is here to help you protect your crops, maximize your income, and navigate government schemes.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="mt-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div
+                        onClick={() => setActiveSection('diagnose')}
+                        className="p-6 bg-card rounded-lg shadow-lg cursor-pointer transform hover:-translate-y-2 transition-transform duration-300 flex flex-col items-center text-center group"
+                    >
+                        <div className="bg-green-100 p-4 rounded-full mb-4">
+                          <Leaf className="w-10 h-10 text-primary" />
+                        </div>
+                        <h3 className="text-xl font-headline font-semibold text-card-foreground group-hover:text-primary transition-colors">Diagnose Crop Diseases</h3>
+                        <p className="text-card-foreground/70 mt-2 text-sm">Upload a photo for instant analysis and remedies.</p>
+                    </div>
+                     <div
+                        onClick={() => setActiveSection('market')}
+                        className="p-6 bg-card rounded-lg shadow-lg cursor-pointer transform hover:-translate-y-2 transition-transform duration-300 flex flex-col items-center text-center group"
+                    >
+                        <div className="bg-blue-100 p-4 rounded-full mb-4">
+                          <LineChart className="w-10 h-10 text-blue-600" />
+                        </div>
+                        <h3 className="text-xl font-headline font-semibold text-card-foreground group-hover:text-primary transition-colors">Real-Time Market Analysis</h3>
+                        <p className="text-card-foreground/70 mt-2 text-sm">Get insights to make informed selling decisions.</p>
+                    </div>
+                     <div
+                        onClick={() => setActiveSection('schemes')}
+                        className="p-6 bg-card rounded-lg shadow-lg cursor-pointer transform hover:-translate-y-2 transition-transform duration-300 flex flex-col items-center text-center group"
+                    >
+                        <div className="bg-purple-100 p-4 rounded-full mb-4">
+                           <ShieldCheck className="w-10 h-10 text-purple-600" />
+                        </div>
+                        <h3 className="text-xl font-headline font-semibold text-card-foreground group-hover:text-primary transition-colors">Navigate Government Schemes</h3>
+                        <p className="text-card-foreground/70 mt-2 text-sm">Find relevant schemes and application information.</p>
+                    </div>
+                </div>
+                {user?.uid && (
+                    <p className="mt-12 text-center text-xs text-muted-foreground">
+                        User ID: <span className="font-mono">{user.uid}</span>
+                    </p>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
