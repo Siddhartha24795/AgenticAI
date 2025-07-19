@@ -59,23 +59,25 @@ export default function DiagnoseComponent() {
       console.error("Error fetching diagnosis history:", error);
       let description = "Could not fetch diagnosis history.";
       
-      if (error.code === 'failed-precondition' && error.message.includes('index')) {
+      // Check for the specific error code that indicates a missing index.
+      if (error.code === 'failed-precondition') {
+        // Extract the URL from the error message.
         const urlMatch = error.message.match(/(https?:\/\/[^\s]+)/);
         if (urlMatch) {
           const url = urlMatch[0];
-          description = `Firestore needs an index. Please <a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">click here to create it</a>, then refresh the page.`;
+          // Provide a user-friendly toast with a direct link to create the index.
+          description = `Your database needs a new index to show history. <a href="${url}" target="_blank" rel="noopener noreferrer" class="font-bold text-blue-400 underline">Please click here to create it</a>, then refresh the page.`;
+           toast({ 
+            title: "Database Index Required", 
+            description: <div dangerouslySetInnerHTML={{ __html: description }} />,
+            variant: "destructive",
+            duration: 30000 // Increase duration to give user time to click
+          });
         } else {
-          description = 'Firestore requires a new index. Please check the Firebase console for the creation link.';
+           toast({ title: "Database Error", description: "An index is required. Please check the Firestore console.", variant: "destructive" });
         }
-         toast({ 
-          title: "Firestore Index Required", 
-          description: <div dangerouslySetInnerHTML={{ __html: description }} />,
-          variant: "destructive",
-          duration: 20000 
-        });
-
       } else {
-         toast({ title: "Error", description, variant: "destructive" });
+         toast({ title: "Error Fetching History", description: description, variant: "destructive" });
       }
 
       setHistoryLoading(false);
