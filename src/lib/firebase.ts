@@ -1,20 +1,25 @@
 'use client';
 
-import { initializeApp, getApp, getApps } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeApp, getApp, getApps, type FirebaseApp } from 'firebase/app';
+import { getAuth, type Auth } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
 
-const firebaseConfig = typeof window !== 'undefined' && (window as any).__firebase_config ? JSON.parse((window as any).__firebase_config) : {};
+let app: FirebaseApp | undefined;
+let auth: Auth | null = null;
+let db: Firestore | null = null;
+let appId = 'default-app-id';
+let initialAuthToken: string | null = null;
 
-let app;
 if (typeof window !== 'undefined') {
+  const firebaseConfigStr = (window as any).__firebase_config;
+  if (firebaseConfigStr) {
+    const firebaseConfig = JSON.parse(firebaseConfigStr);
     app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+    auth = getAuth(app);
+    db = getFirestore(app);
+    appId = (window as any).__app_id || 'default-app-id';
+    initialAuthToken = (window as any).__initial_auth_token || null;
+  }
 }
-
-const auth = typeof window !== 'undefined' ? getAuth(app) : null;
-const db = typeof window !== 'undefined' ? getFirestore(app) : null;
-const appId = typeof window !== 'undefined' && (window as any).__app_id ? (window as any).__app_id : 'default-app-id';
-const initialAuthToken = typeof window !== 'undefined' && (window as any).__initial_auth_token ? (window as any).__initial_auth_token : null;
-
 
 export { app, auth, db, appId, initialAuthToken };
