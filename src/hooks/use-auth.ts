@@ -16,7 +16,20 @@ export function useAuth() {
     if (!auth) {
         // This can happen if the firebase config is not yet available on the client.
         // The effect will re-run once the component re-renders and it is.
-        return;
+        // A better approach might be to wait for an event or use a context provider
+        // that initializes Firebase at the top level of the app.
+        const timer = setTimeout(() => {
+          if (!getFirebaseAuth()) {
+            setIsAuthReady(true); // Unblock UI even if firebase is failing
+            console.error("Firebase config not available after delay.");
+             toast({
+              title: "Configuration Error",
+              description: "Could not initialize Firebase. Please check your configuration.",
+              variant: "destructive",
+            });
+          }
+        }, 3000); // Wait 3 seconds and check again.
+        return () => clearTimeout(timer);
     };
     
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
