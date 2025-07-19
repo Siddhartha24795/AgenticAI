@@ -42,17 +42,19 @@ const prompt = ai.definePrompt({
   name: 'analyzePlantImagePrompt',
   input: {schema: AnalyzePlantImageInputSchema},
   output: {schema: AnalyzePlantImageOutputSchema},
-  prompt: `You are an expert botanist who speaks {{language}}. Analyze this plant and provide a diagnosis of potential diseases or pests, along with actionable remedies. Respond in {{language}}.
-  
-  IMPORTANT: Your response must be in simple, clear language that a farmer can easily understand. Do not use any markdown formatting like ** or *. Write in plain text paragraphs.
+  prompt: `You are an expert botanist who speaks {{language}}. Your task is to analyze a plant and provide a diagnosis.
 
-  {{#if textQuery}}
-  User Query: {{{textQuery}}}
-  {{/if}}
+You must respond in a JSON format. The 'diagnosis' field in the JSON should contain your full response.
 
-  {{#if photoDataUri}}
-  Photo: {{media url=photoDataUri}}
-  {{/if}}`,
+The content of your 'diagnosis' should be in simple, clear {{language}} that a farmer can easily understand. Do not use any markdown formatting like ** or *. Write in plain text paragraphs.
+
+{{#if textQuery}}
+User Query: {{{textQuery}}}
+{{/if}}
+
+{{#if photoDataUri}}
+Photo: {{media url=photoDataUri}}
+{{/if}}`,
 });
 
 const analyzePlantImageFlow = ai.defineFlow(
