@@ -43,6 +43,7 @@ function initializeFirebase() {
     }
 }
 
+// Initialize Firebase immediately on client-side load
 initializeFirebase();
 
 function getFirebaseAuth(): Auth | null {
