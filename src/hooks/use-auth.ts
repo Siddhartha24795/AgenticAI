@@ -38,7 +38,7 @@ export function useAuth() {
           console.error("Firebase anonymous sign-in error:", error);
           toast({
             title: "Authentication Failed",
-            description: "Could not sign in anonymously. Please check your API key.",
+            description: "Could not sign in anonymously. Please check your API key and Firebase config.",
             variant: "destructive",
           });
           setIsAuthReady(true); // Unblock UI if sign-in fails
