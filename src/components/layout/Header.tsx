@@ -1,3 +1,4 @@
+
 'use client';
 
 import { usePathname } from 'next/navigation';
@@ -24,18 +25,18 @@ export default function Header() {
         <nav className="w-full sm:w-auto">
           <ul className="flex justify-around sm:justify-center sm:space-x-1 bg-black/10 p-1 rounded-lg">
             {navItems.map((item) => (
-              <li key={item.path}>
+              <li key={item.path} className="flex-1 sm:flex-none">
                 <Link
                   href={item.path}
                   className={cn(
-                    'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors w-full justify-center',
+                    'flex flex-col md:flex-row items-center gap-1 md:gap-2 rounded-md px-2 py-1 md:px-3 md:py-2 text-xs md:text-sm font-medium transition-colors w-full justify-center',
                     'hover:bg-primary-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                     pathname === item.path ? 'bg-primary-foreground/20 text-white' : 'text-primary-foreground/80 hover:text-white'
                   )}
                   aria-current={pathname === item.path ? 'page' : undefined}
                 >
                   <item.icon className="h-5 w-5" />
-                  <span className="hidden md:inline">{item.label}</span>
+                  <span>{item.label}</span>
                 </Link>
               </li>
             ))}
