@@ -1,15 +1,12 @@
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Leaf, LineChart, ShieldCheck } from "lucide-react";
-import type { Section } from "@/app/page";
 import type { User } from "firebase/auth";
+import Link from "next/link";
+import { useAuth } from "@/hooks/use-auth";
 
-interface HomeComponentProps {
-    setActiveSection: (section: Section) => void;
-    user: User | null;
-}
-
-export default function HomeComponent({ setActiveSection, user }: HomeComponentProps) {
+export default function HomeComponent() {
+    const { user } = useAuth();
     const userName = user?.isAnonymous ? 'Farmer' : 'Siddhartha Mishra';
     return (
         <Card className="border-none shadow-none bg-transparent">
@@ -21,8 +18,8 @@ export default function HomeComponent({ setActiveSection, user }: HomeComponentP
             </CardHeader>
             <CardContent className="mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div
-                        onClick={() => setActiveSection('diagnose')}
+                    <Link
+                        href="/diagnose"
                         className="p-6 bg-card rounded-lg shadow-lg cursor-pointer transform hover:-translate-y-2 transition-transform duration-300 flex flex-col items-center text-center group"
                     >
                         <div className="bg-green-100 p-4 rounded-full mb-4">
@@ -30,9 +27,9 @@ export default function HomeComponent({ setActiveSection, user }: HomeComponentP
                         </div>
                         <h3 className="text-xl font-headline font-semibold text-card-foreground group-hover:text-primary transition-colors">Diagnose Crop Diseases</h3>
                         <p className="text-card-foreground/70 mt-2 text-sm">Upload a photo for instant analysis and remedies.</p>
-                    </div>
-                     <div
-                        onClick={() => setActiveSection('market')}
+                    </Link>
+                     <Link
+                        href="/market"
                         className="p-6 bg-card rounded-lg shadow-lg cursor-pointer transform hover:-translate-y-2 transition-transform duration-300 flex flex-col items-center text-center group"
                     >
                         <div className="bg-blue-100 p-4 rounded-full mb-4">
@@ -40,9 +37,9 @@ export default function HomeComponent({ setActiveSection, user }: HomeComponentP
                         </div>
                         <h3 className="text-xl font-headline font-semibold text-card-foreground group-hover:text-primary transition-colors">Real-Time Market Analysis</h3>
                         <p className="text-card-foreground/70 mt-2 text-sm">Get insights to make informed selling decisions.</p>
-                    </div>
-                     <div
-                        onClick={() => setActiveSection('schemes')}
+                    </Link>
+                     <Link
+                        href="/schemes"
                         className="p-6 bg-card rounded-lg shadow-lg cursor-pointer transform hover:-translate-y-2 transition-transform duration-300 flex flex-col items-center text-center group"
                     >
                         <div className="bg-purple-100 p-4 rounded-full mb-4">
@@ -50,7 +47,7 @@ export default function HomeComponent({ setActiveSection, user }: HomeComponentP
                         </div>
                         <h3 className="text-xl font-headline font-semibold text-card-foreground group-hover:text-primary transition-colors">Navigate Government Schemes</h3>
                         <p className="text-card-foreground/70 mt-2 text-sm">Find relevant schemes and application information.</p>
-                    </div>
+                    </Link>
                 </div>
                 {user?.uid && (
                     <p className="mt-12 text-center text-xs text-muted-foreground">
