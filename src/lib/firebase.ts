@@ -16,7 +16,7 @@ const firebaseConfig = {
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-function initializeFirebaseClient() {
+function initializeFirebase() {
     if (typeof window !== 'undefined') {
         if (!getApps().length) {
             if (
@@ -30,7 +30,7 @@ function initializeFirebaseClient() {
                     auth = getAuth(app);
                     db = getFirestore(app);
                 } catch (e) {
-                    console.error("Error initializing Firebase", e)
+                    console.error("Error initializing Firebase", e);
                 }
             } else {
                 console.error("Firebase configuration is missing or incomplete. Please check your .env file.");
@@ -43,13 +43,19 @@ function initializeFirebaseClient() {
     }
 }
 
-initializeFirebaseClient();
+initializeFirebase();
 
 function getFirebaseAuth(): Auth | null {
+    if (!auth) {
+        initializeFirebase();
+    }
     return auth;
 }
 
 function getFirebaseDb(): Firestore | null {
+    if (!db) {
+        initializeFirebase();
+    }
     return db;
 }
 
@@ -60,6 +66,5 @@ function getFirebaseAppId(): string | null {
 export { 
     getFirebaseAuth, 
     getFirebaseDb,
-    getFirebaseAppId,
-    initializeFirebaseClient
+    getFirebaseAppId
 };

@@ -28,9 +28,12 @@ export function useAuth() {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
+        setIsAuthReady(true);
       } else {
         try {
           await signInAnonymously(auth);
+          // The onAuthStateChanged will be called again with the new user,
+          // so we don't need to set the user here.
         } catch (error) {
           console.error("Firebase anonymous sign-in error:", error);
           toast({
@@ -38,9 +41,9 @@ export function useAuth() {
             description: "Could not sign in anonymously. Please check your API key.",
             variant: "destructive",
           });
+          setIsAuthReady(true); // Unblock UI if sign-in fails
         }
       }
-      setIsAuthReady(true);
     });
 
     return () => unsubscribe();
