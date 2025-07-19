@@ -36,12 +36,15 @@ const GOVERNMENT_SCHEME_DOCS = [
     }
 ];
 
-function stripHtml(html: string) {
-  if (typeof window === 'undefined') {
-    return html;
-  }
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-  return doc.body.textContent || "";
+function cleanTextForSpeech(text: string): string {
+  if (!text) return '';
+  // Remove HTML tags
+  let cleanedText = text.replace(/<[^>]*>?/gm, ' ');
+  // Remove URLs
+  cleanedText = cleanedText.replace(/(https?:\/\/[^\s]+)/g, ' ');
+  // Replace multiple newlines/spaces with a single space
+  cleanedText = cleanedText.replace(/\s+/g, ' ').trim();
+  return cleanedText;
 }
 
 export default function SchemesComponent() {
@@ -77,16 +80,16 @@ export default function SchemesComponent() {
         language: languagePrompt,
       });
 
-      const [searchResult] = await Promise.all([searchPromise]);
+      const searchResult = await searchPromise;
       const schemeInformation = searchResult.schemeInformation;
       setResult(schemeInformation);
 
-      const textForSpeech = stripHtml(schemeInformation);
+      const textForSpeech = cleanTextForSpeech(schemeInformation);
       const speechPromise = textToSpeech({ text: textForSpeech });
       
       toast({ title: "Success", description: "Scheme information retrieved." });
       
-      const [speechResult] = await Promise.all([speechPromise]);
+      const speechResult = await speechPromise;
       setAudioResponseUri(speechResult.audioDataUri);
 
     } catch (error) {

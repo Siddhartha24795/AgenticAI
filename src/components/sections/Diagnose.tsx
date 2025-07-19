@@ -132,9 +132,7 @@ export default function DiagnoseComponent() {
           language: languagePrompt,
       }
       
-      const textPromise = analyzePlantImage(input);
-      
-      const [textResult] = await Promise.all([textPromise]);
+      const textResult = await analyzePlantImage(input);
       const diagnosisText = textResult.diagnosis;
       setDiagnosisResult(diagnosisText);
       
@@ -151,7 +149,7 @@ export default function DiagnoseComponent() {
       }
       toast({ title: "Success", description: "Plant analysis complete." });
 
-      const [speechResult] = await Promise.all([speechPromise]);
+      const speechResult = await speechPromise;
       setAudioResponseUri(speechResult.audioDataUri);
 
     } catch(e) {

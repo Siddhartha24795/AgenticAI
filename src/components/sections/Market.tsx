@@ -53,15 +53,17 @@ export default function MarketComponent() {
         language: languagePrompt,
       });
 
-      const [analysisResult] = await Promise.all([analysisPromise]);
+      // Fetch text result first to display it ASAP
+      const analysisResult = await analysisPromise;
       const marketSummary = analysisResult.marketSummary;
       setResult(marketSummary);
 
+      // Then fetch audio
       const speechPromise = textToSpeech({ text: marketSummary });
       
       toast({ title: "Success", description: "Market analysis complete." });
 
-      const [speechResult] = await Promise.all([speechPromise]);
+      const speechResult = await speechPromise;
       setAudioResponseUri(speechResult.audioDataUri);
 
     } catch (error) {
