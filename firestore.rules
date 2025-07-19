@@ -1,0 +1,11 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow users to read and write only their own diagnosis documents.
+    // The path includes the app ID to ensure multi-tenancy if this project is used as a template.
+    match /artifacts/{appId}/users/{userId}/diagnoses/{docId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
