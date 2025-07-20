@@ -2,9 +2,9 @@
 export const translations = {
   layout: {
     title: {
-      en: 'AgriAssist AI',
-      kn: 'ಅಗ್ರಿಅಸಿಸ್ಟ್ AI',
-      hi: 'एग्रीअसिस्ट AI',
+      en: 'Agrigentic AI',
+      kn: 'ಅಗ್ರಿಜೆಂಟಿಕ್ AI',
+      hi: 'एग्रीजेंटिक AI',
     },
     description: {
         en: 'AI-powered assistant for farmers',
@@ -13,7 +13,7 @@ export const translations = {
     }
   },
   header: {
-    title: { en: 'AgriAssist AI', kn: 'ಅಗ್ರಿಅಸಿಸ್ಟ್ AI', hi: 'एग्रीअसिस्ट AI' },
+    title: { en: 'Agrigentic AI', kn: 'ಅಗ್ರಿಜೆಂಟಿಕ್ AI', hi: 'एग्रीजेंटिक AI' },
     home: { en: 'Home', kn: 'ಹೋಮ್', hi: 'होम' },
     diagnose: { en: 'Diagnose', kn: 'ರೋಗನಿರ್ಣಯ', hi: 'निदान' },
     market: { en: 'Market', kn: 'ಮಾರುಕಟ್ಟೆ', hi: 'बाजार' },
@@ -114,3 +114,5 @@ export const translations = {
     searchFailed: { en: 'Search Failed', kn: 'ಹುಡುಕಾಟ ವಿಫಲವಾಯಿತು', hi: 'खोज विफल रही' },
   }
 };
+
+    
