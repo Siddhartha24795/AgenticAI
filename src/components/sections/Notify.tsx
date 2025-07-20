@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Flame, Waves, HeartPulse, MessageSquareWarning, Send } from 'lucide-react';
+import { Flame, Waves, HeartPulse, MessageSquareWarning, Send, BellRing } from 'lucide-react';
 
 export default function NotifyComponent() {
   const { toast } = useToast();
