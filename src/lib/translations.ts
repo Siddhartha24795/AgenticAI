@@ -63,6 +63,8 @@ export const translations = {
   market: {
     title: { en: 'Real-Time Market Analysis', kn: 'ನೈಜ-ಸಮಯದ ಮಾರುಕಟ್ಟೆ ವಿಶ್ಲೇಷಣೆ', hi: 'वास्तविक समय में बाजार विश्लेषण' },
     description: { en: 'Ask about market prices to guide your selling decisions (e.g., "What is the price of tomatoes today?").', kn: 'ನಿಮ್ಮ ಮಾರಾಟದ ನಿರ್ಧಾರಗಳಿಗೆ ಮಾರ್ಗದರ್ಶನ ನೀಡಲು ಮಾರುಕಟ್ಟೆ ಬೆಲೆಗಳ ಬಗ್ಗೆ ಕೇಳಿ (ಉದಾ., "ಇಂದು ಟೊಮೆಟೊ ಬೆಲೆ ಎಷ್ಟು?").', hi: 'अपने बिक्री निर्णयों का मार्गदर्शन करने के लिए बाजार मूल्य के बारे में पूछें (उदाहरण के लिए, "आज टमाटर का मूल्य क्या है?")।' },
+    locationTitle: { en: 'Location', kn: 'ಸ್ಥಳ', hi: 'स्थान' },
+    selectLocationPlaceholder: { en: 'Select a city', kn: 'ನಗರವನ್ನು ಆಯ್ಕೆಮಾಡಿ', hi: 'एक शहर चुनें' },
     queryPlaceholder: { en: 'Enter your query here...', kn: 'ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಇಲ್ಲಿ ನಮೂದಿಸಿ...', hi: 'अपना प्रश्न यहाँ दर्ज करें...' },
     textQueryAria: { en: 'Submit text query', kn: 'ಪಠ್ಯ ಪ್ರಶ್ನೆಯನ್ನು ಸಲ್ಲಿಸಿ', hi: 'पाठ्य प्रश्न सबमिट करें' },
     audioQueryAria: { en: 'Submit audio query', kn: 'ಆಡಿಯೋ ಪ್ರಶ್ನೆಯನ್ನು ಸಲ್ಲಿಸಿ', hi: 'ऑडियो प्रश्न सबमिट करें' },

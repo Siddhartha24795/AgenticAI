@@ -35,8 +35,8 @@ export default function Header() {
     navItems.map((item) => {
       const linkContent = (
         <>
-          <item.icon className={cn("h-5 w-5", isMobileLayout ? "" : "sm:h-4 sm:w-4")} />
-          <span className={cn(isMobileLayout ? "" : "sm:hidden lg:inline")}>{t(item.labelKey)}</span>
+          <item.icon className="h-5 w-5" />
+          <span>{t(item.labelKey)}</span>
         </>
       );
   
@@ -58,11 +58,11 @@ export default function Header() {
       }
   
       return (
-        <li key={item.path} className="flex-1 sm:flex-none">
+        <li key={item.path}>
           <Link
             href={item.path}
             className={cn(
-              'flex flex-col items-center gap-1 rounded-md px-2 py-1 text-xs font-medium transition-colors w-full justify-center sm:flex-row sm:gap-2 sm:px-3 sm:py-2 sm:text-sm',
+              'flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors',
               'hover:bg-primary-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
               pathname === item.path ? 'bg-primary-foreground/20 text-white' : 'text-primary-foreground/80 hover:text-white'
             )}
@@ -96,8 +96,8 @@ export default function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <nav className="w-full sm:w-auto">
-              <ul className="flex justify-around sm:justify-center sm:space-x-1 bg-black/10 p-1 rounded-lg">
+            <nav>
+              <ul className="flex justify-center space-x-1 bg-black/10 p-1 rounded-lg">
                 {renderNavLinks(false)}
               </ul>
             </nav>

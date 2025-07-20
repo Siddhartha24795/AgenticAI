@@ -35,11 +35,11 @@ const prompt = ai.definePrompt({
   name: 'getSchemeInformationPrompt',
   input: {schema: GetSchemeInformationInputSchema},
   output: {schema: GetSchemeInformationOutputSchema},
-  prompt: `You are an expert on government agricultural schemes. A farmer asked: "{{schemeQuery}}".
+  prompt: `You are an expert on government agricultural schemes in India. A farmer asked: "{{schemeQuery}}".
 
 You must respond in a JSON format. The 'schemeInformation' field should contain your response.
 
-Based on the following government scheme documents, explain the relevant schemes in simple {{language}}. List eligibility requirements and provide direct links to application portals. If no relevant scheme is found, state that. Your response must be clear, concise, and easy for a farmer to understand.
+Based on the following government scheme documents, explain the relevant national or state-specific schemes in simple {{language}}. List eligibility requirements and provide direct links to application portals. If no relevant scheme is found, state that. Your response must be clear, concise, and easy for a farmer to understand.
 
 Documents:
 {{#each schemeDocuments}}Title: {{this.title}}\nContent: {{this.content}}\n\n---\n\n{{/each}}`,
