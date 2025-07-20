@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
-import { Loader2, Upload, History, Mic, Send, Play } from 'lucide-react';
+import { Loader2, Upload, History, Mic, Send, Play, StopCircle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '../ui/skeleton';
 import { useAuth } from '@/hooks/use-auth';
@@ -37,6 +37,7 @@ export default function DiagnoseComponent() {
   const [loading, setLoading] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [history, setHistory] = useState<Diagnosis[]>([]);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -91,6 +92,17 @@ export default function DiagnoseComponent() {
     return () => unsubscribe();
   }, [user, isAuthReady, toast]);
 
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      const handleEnded = () => setIsPlaying(false);
+      audio.addEventListener('ended', handleEnded);
+      return () => {
+        audio.removeEventListener('ended', handleEnded);
+      };
+    }
+  }, [audioResponseUri]);
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -127,9 +139,9 @@ export default function DiagnoseComponent() {
       }
       
       const analysisPromise = analyzePlantImage(input);
+      const textResultPromise = analysisPromise.then(res => res.diagnosis);
       
-      const textResult = await analysisPromise;
-      const diagnosisText = textResult.diagnosis;
+      const [diagnosisText] = await Promise.all([textResultPromise]);
       setDiagnosisResult(diagnosisText);
 
       const speechPromise = textToSpeech({ text: diagnosisText });
@@ -163,6 +175,12 @@ export default function DiagnoseComponent() {
   };
   
   const handleMicClick = () => {
+    if (audioRef.current && isPlaying) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        setIsPlaying(false);
+    }
+
     if (isRecording) {
       recognitionRef.current?.stop();
       setIsRecording(false);
@@ -204,6 +222,19 @@ export default function DiagnoseComponent() {
     };
 
     recognitionRef.current.start();
+  };
+
+  const handlePlayPause = () => {
+    if (audioRef.current) {
+        if (isPlaying) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+            setIsPlaying(false);
+        } else {
+            audioRef.current.play();
+            setIsPlaying(true);
+        }
+    }
   };
   
   const renderSkeletons = () => (
@@ -300,10 +331,10 @@ export default function DiagnoseComponent() {
                         <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => audioRef.current?.play()}
+                        onClick={handlePlayPause}
                         >
-                        <Play className="mr-2 h-4 w-4" />
-                        {t('common.playAudio')}
+                        {isPlaying ? <StopCircle className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
+                        {isPlaying ? t('common.stopAudio') : t('common.playAudio')}
                         </Button>
                     )}
                 </div>
@@ -359,3 +390,5 @@ export default function DiagnoseComponent() {
     </div>
   );
 }
+
+    

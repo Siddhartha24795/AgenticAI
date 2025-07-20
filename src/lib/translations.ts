@@ -106,6 +106,7 @@ export const translations = {
     success: { en: 'Success', kn: 'ಯಶಸ್ಸು', hi: 'सफलता' },
     note: { en: 'Note', kn: 'ಗಮನಿಸಿ', hi: 'ध्यान दें' },
     playAudio: { en: 'Play Audio', kn: 'ಆಡಿಯೋ ಪ್ಲೇ ಮಾಡಿ', hi: 'ऑडियो चलाएं' },
+    stopAudio: { en: 'Stop Audio', kn: 'ಆಡಿಯೋ ನಿಲ್ಲಿಸಿ', hi: 'ऑडियो रोकें' },
     loadingDate: { en: 'Loading date...', kn: 'ದಿನಾಂಕ ಲೋಡ್ ಆಗುತ್ತಿದೆ...', hi: 'दिनांक लोड हो रहा है...' },
     speechRecognitionNotSupported: { en: 'Speech recognition is not supported in this browser.', kn: 'ಈ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಸ್ಪೀಚ್ ರೆಕಗ್ನಿಷನ್ ಬೆಂಬಲಿತವಾಗಿಲ್ಲ.', hi: 'इस ब्राउज़र में वाक् पहचान समर्थित नहीं है।' },
     listening: { en: 'Listening...', kn: 'ಕೇಳುತ್ತಿದೆ...', hi: 'सुन रहा है...' },

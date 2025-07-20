@@ -1,13 +1,13 @@
 
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { getMarketInsights } from '@/ai/flows/get-market-insights';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Mic, Send, Play, MapPin } from 'lucide-react';
+import { Loader2, Mic, Send, Play, MapPin, StopCircle } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '../ui/skeleton';
 import { useLanguage } from '@/hooks/use-language';
@@ -24,10 +24,22 @@ export default function MarketComponent() {
   const [audioResponseUri, setAudioResponseUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const { toast } = useToast();
   const recognitionRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { languageCode, languagePrompt, t } = useLanguage();
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      const handleEnded = () => setIsPlaying(false);
+      audio.addEventListener('ended', handleEnded);
+      return () => {
+        audio.removeEventListener('ended', handleEnded);
+      };
+    }
+  }, [audioResponseUri]);
 
   const handleAnalyze = async (textQuery: string) => {
     if (!textQuery.trim()) {
@@ -76,6 +88,12 @@ export default function MarketComponent() {
   };
 
   const handleMicClick = () => {
+    if (audioRef.current && isPlaying) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        setIsPlaying(false);
+    }
+      
     if (isRecording) {
       recognitionRef.current?.stop();
       setIsRecording(false);
@@ -117,6 +135,19 @@ export default function MarketComponent() {
     };
 
     recognitionRef.current.start();
+  };
+
+  const handlePlayPause = () => {
+    if (audioRef.current) {
+        if (isPlaying) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+            setIsPlaying(false);
+        } else {
+            audioRef.current.play();
+            setIsPlaying(true);
+        }
+    }
   };
 
   return (
@@ -173,10 +204,10 @@ export default function MarketComponent() {
                     <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => audioRef.current?.play()}
+                    onClick={handlePlayPause}
                     >
-                    <Play className="mr-2 h-4 w-4" />
-                    {t('common.playAudio')}
+                    {isPlaying ? <StopCircle className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
+                    {isPlaying ? t('common.stopAudio') : t('common.playAudio')}
                     </Button>
                 )}
             </div>
@@ -196,3 +227,5 @@ export default function MarketComponent() {
     </Card>
   );
 }
+
+    
