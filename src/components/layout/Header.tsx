@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Home, Leaf, LineChart, ShieldCheck, Languages, Menu } from 'lucide-react';
+import { Home, Leaf, LineChart, ShieldCheck, Languages, Menu, BellRing } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import {
   DropdownMenu,
@@ -102,6 +102,14 @@ export default function Header() {
               </ul>
             </nav>
           )}
+
+          <Link href="/notify" passHref>
+             <Button variant="destructive" size="icon" className="relative animate-pulse">
+                <BellRing className="h-5 w-5" />
+                <span className="sr-only">Notifier</span>
+              </Button>
+          </Link>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon" className="bg-transparent hover:bg-primary-foreground/10 text-white border-white/50 hover:text-white">
