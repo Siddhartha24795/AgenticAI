@@ -5,10 +5,12 @@ import { Leaf, LineChart, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/use-auth";
 import { Skeleton } from "../ui/skeleton";
+import { useLanguage } from "@/hooks/use-language";
 
 export default function HomeComponent() {
     const { user, isAuthReady } = useAuth();
-    const userName = user?.isAnonymous ? 'Farmer' : 'Siddhartha Mishra';
+    const { t } = useLanguage();
+    const userName = user?.isAnonymous ? t('home.farmer') : 'Siddhartha Mishra';
 
     if (!isAuthReady) {
         return (
@@ -31,9 +33,9 @@ export default function HomeComponent() {
     return (
         <Card className="border-none shadow-none bg-transparent">
             <CardHeader className="text-center">
-                <CardTitle className="text-4xl font-headline text-primary">Welcome, {userName}!</CardTitle>
+                <CardTitle className="text-4xl font-headline text-primary">{t('home.welcome')} {userName}!</CardTitle>
                 <CardDescription className="text-lg text-foreground/80 mt-2 max-w-2xl mx-auto">
-                    Your AI-powered personal assistant is here to help you protect your crops, maximize your income, and navigate government schemes.
+                    {t('home.description')}
                 </CardDescription>
             </CardHeader>
             <CardContent className="mt-6">
@@ -45,8 +47,8 @@ export default function HomeComponent() {
                         <div className="bg-green-100 p-4 rounded-full mb-4">
                           <Leaf className="w-10 h-10 text-primary" />
                         </div>
-                        <h3 className="text-xl font-headline font-semibold text-card-foreground group-hover:text-primary transition-colors">Diagnose Crop Diseases</h3>
-                        <p className="text-card-foreground/70 mt-2 text-sm">Upload a photo for instant analysis and remedies.</p>
+                        <h3 className="text-xl font-headline font-semibold text-card-foreground group-hover:text-primary transition-colors">{t('home.diagnoseTitle')}</h3>
+                        <p className="text-card-foreground/70 mt-2 text-sm">{t('home.diagnoseDesc')}</p>
                     </Link>
                      <Link
                         href="/market"
@@ -55,8 +57,8 @@ export default function HomeComponent() {
                         <div className="bg-blue-100 p-4 rounded-full mb-4">
                           <LineChart className="w-10 h-10 text-blue-600" />
                         </div>
-                        <h3 className="text-xl font-headline font-semibold text-card-foreground group-hover:text-primary transition-colors">Real-Time Market Analysis</h3>
-                        <p className="text-card-foreground/70 mt-2 text-sm">Get insights to make informed selling decisions.</p>
+                        <h3 className="text-xl font-headline font-semibold text-card-foreground group-hover:text-primary transition-colors">{t('home.marketTitle')}</h3>
+                        <p className="text-card-foreground/70 mt-2 text-sm">{t('home.marketDesc')}</p>
                     </Link>
                      <Link
                         href="/schemes"
@@ -65,13 +67,13 @@ export default function HomeComponent() {
                         <div className="bg-purple-100 p-4 rounded-full mb-4">
                            <ShieldCheck className="w-10 h-10 text-purple-600" />
                         </div>
-                        <h3 className="text-xl font-headline font-semibold text-card-foreground group-hover:text-primary transition-colors">Navigate Government Schemes</h3>
-                        <p className="text-card-foreground/70 mt-2 text-sm">Find relevant schemes and application information.</p>
+                        <h3 className="text-xl font-headline font-semibold text-card-foreground group-hover:text-primary transition-colors">{t('home.schemesTitle')}</h3>
+                        <p className="text-card-foreground/70 mt-2 text-sm">{t('home.schemesDesc')}</p>
                     </Link>
                 </div>
                 {user?.uid && (
                     <p className="mt-12 text-center text-xs text-muted-foreground">
-                        User ID: <span className="font-mono">{user.uid}</span>
+                        {t('home.userId')} <span className="font-mono">{user.uid}</span>
                     </p>
                 )}
             </CardContent>

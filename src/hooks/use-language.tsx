@@ -2,6 +2,7 @@
 'use client';
 
 import { createContext, useContext, useState, ReactNode } from 'react';
+import { translations } from '@/lib/translations';
 
 type Language = 'en' | 'kn' | 'hi';
 type LanguageCode = 'en-US' | 'kn-IN' | 'hi-IN';
@@ -11,6 +12,7 @@ interface LanguageContextType {
   languageCode: LanguageCode;
   languagePrompt: string;
   setLanguage: (language: Language) => void;
+  t: (key: string) => string;
 }
 
 const languageMap: Record<Language, { code: LanguageCode; prompt: string }> = {
@@ -22,13 +24,23 @@ const languageMap: Record<Language, { code: LanguageCode; prompt: string }> = {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState<Language>('kn');
+  const [language, setLanguage] = useState<Language>('en');
+
+  const t = (key: string) => {
+    const keys = key.split('.');
+    let result: any = translations;
+    for (const k of keys) {
+      result = result?.[k];
+    }
+    return result?.[language] || key;
+  };
 
   const value = {
     language,
     languageCode: languageMap[language].code,
     languagePrompt: languageMap[language].prompt,
     setLanguage,
+    t,
   };
 
   return (
@@ -45,3 +57,5 @@ export function useLanguage() {
   }
   return context;
 }
+
+export { translations };

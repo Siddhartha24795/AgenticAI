@@ -38,11 +38,8 @@ const GOVERNMENT_SCHEME_DOCS = [
 
 function cleanTextForSpeech(text: string): string {
   if (!text) return '';
-  // Remove HTML tags
   let cleanedText = text.replace(/<[^>]*>?/gm, ' ');
-  // Remove URLs
   cleanedText = cleanedText.replace(/(https?:\/\/[^\s]+)/g, ' ');
-  // Replace multiple newlines/spaces with a single space
   cleanedText = cleanedText.replace(/\s+/g, ' ').trim();
   return cleanedText;
 }
@@ -56,11 +53,11 @@ export default function SchemesComponent() {
   const { toast } = useToast();
   const recognitionRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const { languageCode, languagePrompt } = useLanguage();
+  const { languageCode, languagePrompt, t } = useLanguage();
 
   const handleSearch = async (textQuery: string) => {
     if (!textQuery.trim()) {
-      toast({ title: "Error", description: "Please enter a query for government schemes.", variant: "destructive" });
+      toast({ title: t('common.error'), description: t('schemes.errorDescription'), variant: "destructive" });
       return;
     }
     setLoading(true);
@@ -83,7 +80,7 @@ export default function SchemesComponent() {
         const textForSpeech = cleanTextForSpeech(schemeInformation);
         const speechPromise = textToSpeech({ text: textForSpeech });
         
-        toast({ title: "Success", description: "Scheme information retrieved." });
+        toast({ title: t('common.success'), description: t('schemes.successDescription') });
         
         const speechResult = await speechPromise;
         setAudioResponseUri(speechResult.audioDataUri);
@@ -91,7 +88,7 @@ export default function SchemesComponent() {
     } catch (error) {
       console.error("Error getting scheme info:", error);
       setResult(`Error: ${(error as Error).message}. Please try again.`);
-      toast({ title: "Search Failed", description: (error as Error).message, variant: "destructive" });
+      toast({ title: t('common.searchFailed'), description: (error as Error).message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -110,7 +107,7 @@ export default function SchemesComponent() {
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      toast({ title: "Error", description: "Speech recognition is not supported in this browser.", variant: "destructive" });
+      toast({ title: t('common.error'), description: t('common.speechRecognitionNotSupported'), variant: "destructive" });
       return;
     }
 
@@ -122,7 +119,7 @@ export default function SchemesComponent() {
     recognitionRef.current.onstart = () => {
       setIsRecording(true);
       setQuery('');
-      toast({ title: "Listening...", description: `Please speak your query in ${languagePrompt}.`});
+      toast({ title: t('common.listening'), description: `${t('common.speakNow')} ${languagePrompt}.`});
     };
 
     recognitionRef.current.onresult = (event: any) => {
@@ -134,7 +131,7 @@ export default function SchemesComponent() {
     recognitionRef.current.onerror = (event: any) => {
        if (event.error !== 'no-speech') {
         console.error("Speech recognition error", event.error);
-        toast({ title: "Speech Error", description: `An error occurred: ${event.error}`, variant: "destructive" });
+        toast({ title: t('common.speechError'), description: `${t('common.errorOccurred')} ${event.error}`, variant: "destructive" });
       }
     };
 
@@ -148,19 +145,19 @@ export default function SchemesComponent() {
   return (
     <Card className="max-w-3xl mx-auto">
       <CardHeader>
-        <CardTitle className="font-headline text-2xl text-primary">Navigate Government Schemes</CardTitle>
-        <CardDescription>Ask about government schemes to find eligibility and application info (e.g., "subsidies for drip irrigation").</CardDescription>
+        <CardTitle className="font-headline text-2xl text-primary">{t('schemes.title')}</CardTitle>
+        <CardDescription>{t('schemes.description')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center space-x-2">
             <Textarea
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Enter your query here..."
+              placeholder={t('schemes.queryPlaceholder')}
               className="min-h-[100px] flex-grow"
               disabled={loading}
             />
-             <Button onClick={handleTextSubmit} disabled={!query || loading} size="icon" aria-label="Submit text query">
+             <Button onClick={handleTextSubmit} disabled={!query || loading} size="icon" aria-label={t('schemes.textQueryAria')}>
                 {loading ? <Loader2 className="animate-spin" /> : <Send />}
               </Button>
               <Button 
@@ -168,7 +165,7 @@ export default function SchemesComponent() {
                 disabled={loading}
                 size="icon"
                 variant={isRecording ? 'destructive' : 'outline'}
-                aria-label="Submit audio query"
+                aria-label={t('schemes.audioQueryAria')}
               >
                 {isRecording ? <Loader2 className="animate-pulse" /> : <Mic />}
               </Button>
@@ -177,7 +174,7 @@ export default function SchemesComponent() {
         {(loading || result) && (
           <div className="mt-6 p-4 bg-accent/20 border rounded-lg">
             <div className="flex justify-between items-center mb-2">
-                <h3 className="text-lg font-headline font-semibold text-primary">Government Scheme Information:</h3>
+                <h3 className="text-lg font-headline font-semibold text-primary">{t('schemes.resultTitle')}</h3>
                 {audioResponseUri && !loading && (
                     <Button
                     variant="outline"
@@ -185,7 +182,7 @@ export default function SchemesComponent() {
                     onClick={() => audioRef.current?.play()}
                     >
                     <Play className="mr-2 h-4 w-4" />
-                    Play Audio
+                    {t('common.playAudio')}
                     </Button>
                 )}
             </div>
@@ -197,7 +194,7 @@ export default function SchemesComponent() {
                 <audio ref={audioRef} src={audioResponseUri} className="hidden" />
             )}
             <p className="mt-4 text-xs text-muted-foreground">
-              <strong>Note:</strong> Scheme information is based on a predefined set of documents for this demo.
+              <strong>{t('common.note')}:</strong> {t('schemes.predefinedDocsNote')}
             </p>
           </div>
         )}
@@ -205,5 +202,3 @@ export default function SchemesComponent() {
     </Card>
   );
 }
-
-    

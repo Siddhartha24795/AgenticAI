@@ -21,16 +21,15 @@ export default function NotifyComponent() {
   const [otherMessage, setOtherMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef<any>(null);
-  const { languageCode, languagePrompt } = useLanguage();
+  const { languageCode, languagePrompt, t } = useLanguage();
 
   const handleNotification = (type: string, message?: string) => {
-    const notificationMessage =
-      message || `Immediate assistance required due to ${type}.`;
+    const notificationMessage = message || t(`notify.defaultMessage`, { type: t(`notify.${type.toLowerCase().replace(' ', '')}Title`) });
     console.log('Sending notification:', { type, message: notificationMessage });
 
     toast({
-      title: 'Alert Sent!',
-      description: `${type} notification has been broadcast to nearby authorities and farmers.`,
+      title: t('notify.alertSentTitle'),
+      description: t('notify.alertSentDesc', { type: t(`notify.${type.toLowerCase().replace(' ', '')}Title`) }),
       variant: 'destructive',
       duration: 5000,
     });
@@ -49,7 +48,7 @@ export default function NotifyComponent() {
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      toast({ title: "Error", description: "Speech recognition is not supported in this browser.", variant: "destructive" });
+      toast({ title: t('common.error'), description: t('common.speechRecognitionNotSupported'), variant: "destructive" });
       return;
     }
 
@@ -61,7 +60,7 @@ export default function NotifyComponent() {
     recognitionRef.current.onstart = () => {
       setIsRecording(true);
       setOtherMessage('');
-      toast({ title: "Listening...", description: `Please speak your emergency message in ${languagePrompt}.`});
+      toast({ title: t('common.listening'), description: `${t('common.speakNow')} ${languagePrompt}.`});
     };
 
     recognitionRef.current.onresult = (event: any) => {
@@ -72,7 +71,7 @@ export default function NotifyComponent() {
     recognitionRef.current.onerror = (event: any) => {
        if (event.error !== 'no-speech') {
         console.error("Speech recognition error", event.error);
-        toast({ title: "Speech Error", description: `An error occurred: ${event.error}`, variant: "destructive" });
+        toast({ title: t('common.speechError'), description: `${t('common.errorOccurred')} ${event.error}`, variant: "destructive" });
       }
     };
 
@@ -88,11 +87,10 @@ export default function NotifyComponent() {
       <CardHeader className="text-center">
         <CardTitle className="font-headline text-3xl text-destructive flex items-center justify-center gap-3">
           <BellRing className="h-8 w-8" />
-          Emergency Notifier
+          {t('notify.title')}
         </CardTitle>
         <CardDescription className="text-lg text-foreground/80 mt-2 max-w-2xl mx-auto">
-          Instantly alert authorities and nearby farmers in case of an
-          emergency. Use this feature responsibly.
+          {t('notify.description')}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -103,10 +101,10 @@ export default function NotifyComponent() {
           >
             <Flame className="w-16 h-16 text-red-500 mb-4" />
             <h3 className="text-xl font-headline font-semibold text-card-foreground">
-              Fire Alert
+              {t('notify.fireTitle')}
             </h3>
             <p className="text-card-foreground/70 mt-2 text-sm">
-              Notify about a fire outbreak.
+              {t('notify.fireDesc')}
             </p>
           </button>
           <button
@@ -115,10 +113,10 @@ export default function NotifyComponent() {
           >
             <Waves className="w-16 h-16 text-blue-500 mb-4" />
             <h3 className="text-xl font-headline font-semibold text-card-foreground">
-              Flood Warning
+              {t('notify.floodTitle')}
             </h3>
             <p className="text-card-foreground/70 mt-2 text-sm">
-              Warn about rising water levels.
+              {t('notify.floodDesc')}
             </p>
           </button>
           <button
@@ -127,10 +125,10 @@ export default function NotifyComponent() {
           >
             <HeartPulse className="w-16 h-16 text-green-500 mb-4" />
             <h3 className="text-xl font-headline font-semibold text-card-foreground">
-              Medical Emergency
+              {t('notify.medicalemergencyTitle')}
             </h3>
             <p className="text-card-foreground/70 mt-2 text-sm">
-              Request urgent medical help.
+              {t('notify.medicalemergencyDesc')}
             </p>
           </button>
         </div>
@@ -139,11 +137,11 @@ export default function NotifyComponent() {
         <div className="w-full space-y-4">
             <h3 className="text-xl font-headline font-semibold text-card-foreground flex items-center gap-2">
                 <MessageSquareWarning className="h-6 w-6 text-yellow-600" />
-                Other Emergency
+                {t('notify.otherTitle')}
             </h3>
             <div className="relative">
               <Textarea
-                  placeholder="Describe the emergency here, or use the microphone..."
+                  placeholder={t('notify.otherPlaceholder')}
                   value={otherMessage}
                   onChange={(e) => setOtherMessage(e.target.value)}
                   className="min-h-[100px] pr-12"
@@ -153,7 +151,7 @@ export default function NotifyComponent() {
                 disabled={isRecording}
                 size="icon"
                 variant={isRecording ? 'destructive' : 'ghost'}
-                aria-label="Record emergency message"
+                aria-label={t('notify.recordMessageAria')}
                 className="absolute right-2 top-1/2 -translate-y-1/2"
               >
                 {isRecording ? <Loader2 className="animate-pulse" /> : <Mic />}
@@ -165,7 +163,7 @@ export default function NotifyComponent() {
                 className="w-full"
             >
                 <Send className="mr-2 h-4 w-4" />
-                Send Custom Alert
+                {t('notify.sendCustomAlert')}
             </Button>
         </div>
       </CardFooter>

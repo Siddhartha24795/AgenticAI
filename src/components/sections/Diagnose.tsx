@@ -28,7 +28,7 @@ interface Diagnosis {
 
 export default function DiagnoseComponent() {
   const { user, isAuthReady } = useAuth();
-  const { languageCode, languagePrompt } = useLanguage();
+  const { languageCode, languagePrompt, t } = useLanguage();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [textQuery, setTextQuery] = useState('');
@@ -95,7 +95,7 @@ export default function DiagnoseComponent() {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 4 * 1024 * 1024) { // 4MB limit
-        toast({ title: "File too large", description: "Please upload an image smaller than 4MB.", variant: "destructive"});
+        toast({ title: t('diagnose.fileTooLargeTitle'), description: t('diagnose.fileTooLargeDesc'), variant: "destructive"});
         return;
       }
       setImageFile(file);
@@ -111,7 +111,7 @@ export default function DiagnoseComponent() {
 
   const handleDiagnose = async (query: string) => {
     if ((!imageFile && !query) || !user) {
-      toast({ title: "Error", description: "Please upload an image or enter a query.", variant: "destructive" });
+      toast({ title: t('common.error'), description: t('diagnose.errorDescription'), variant: "destructive" });
       return;
     }
 
@@ -126,14 +126,13 @@ export default function DiagnoseComponent() {
           language: languagePrompt,
       }
       
-      const [textResult, speechResult] = await Promise.all([
-        analyzePlantImage(input),
-        textToSpeech({ text: (await analyzePlantImage(input)).diagnosis })
-      ]);
+      const analysisPromise = analyzePlantImage(input);
       
+      const textResult = await analysisPromise;
       const diagnosisText = textResult.diagnosis;
       setDiagnosisResult(diagnosisText);
-      setAudioResponseUri(speechResult.audioDataUri);
+
+      const speechPromise = textToSpeech({ text: diagnosisText });
 
       const db = getFirebaseDb();
       const appId = getFirebaseAppId();
@@ -144,13 +143,16 @@ export default function DiagnoseComponent() {
               timestamp: serverTimestamp(),
           }).catch(console.error);
       }
-      toast({ title: "Success", description: "Plant analysis complete." });
+      toast({ title: t('common.success'), description: t('diagnose.successDescription') });
+      
+      const speechResult = await speechPromise;
+      setAudioResponseUri(speechResult.audioDataUri);
 
     } catch(e) {
         const error = e as Error;
         console.error("Error diagnosing plant:", error);
         setDiagnosisResult(`Error: ${error.message}. Please try again.`);
-        toast({ title: "Analysis Failed", description: error.message, variant: "destructive" });
+        toast({ title: t('common.analysisFailed'), description: error.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -169,7 +171,7 @@ export default function DiagnoseComponent() {
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      toast({ title: "Error", description: "Speech recognition is not supported in this browser.", variant: "destructive" });
+      toast({ title: t('common.error'), description: t('common.speechRecognitionNotSupported'), variant: "destructive" });
       return;
     }
 
@@ -181,7 +183,7 @@ export default function DiagnoseComponent() {
     recognitionRef.current.onstart = () => {
       setIsRecording(true);
       setTextQuery('');
-      toast({ title: "Listening...", description: `Please speak your query in ${languagePrompt}.`});
+      toast({ title: t('common.listening'), description: `${t('common.speakNow')} ${languagePrompt}.`});
     };
 
     recognitionRef.current.onresult = (event: any) => {
@@ -193,7 +195,7 @@ export default function DiagnoseComponent() {
     recognitionRef.current.onerror = (event: any) => {
       if (event.error !== 'no-speech') {
         console.error("Speech recognition error", event.error);
-        toast({ title: "Speech Error", description: `An error occurred: ${event.error}`, variant: "destructive" });
+        toast({ title: t('common.speechError'), description: `${t('common.errorOccurred')} ${event.error}`, variant: "destructive" });
       }
     };
     
@@ -240,8 +242,8 @@ export default function DiagnoseComponent() {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
       <Card>
         <CardHeader>
-          <CardTitle className="font-headline text-2xl text-primary">Diagnose Crop Disease</CardTitle>
-          <CardDescription>Upload a photo, then ask a question via text or voice.</CardDescription>
+          <CardTitle className="font-headline text-2xl text-primary">{t('diagnose.title')}</CardTitle>
+          <CardDescription>{t('diagnose.description')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
             <div
@@ -257,13 +259,13 @@ export default function DiagnoseComponent() {
                 />
                 {imagePreview ? (
                     <div className="relative w-full h-48">
-                        <Image src={imagePreview} alt="Plant Preview" layout="fill" objectFit="contain" className="rounded-md" />
+                        <Image src={imagePreview} alt={t('diagnose.plantPreviewAlt')} layout="fill" objectFit="contain" className="rounded-md" />
                     </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center space-y-2 text-muted-foreground">
                     <Upload className="w-12 h-12" />
-                    <p>Click to upload or drag and drop image</p>
-                    <p className="text-xs">PNG, JPG, etc. up to 4MB</p>
+                    <p>{t('diagnose.uploadPrompt')}</p>
+                    <p className="text-xs">{t('diagnose.uploadConstraints')}</p>
                   </div>
                 )}
             </div>
@@ -272,11 +274,11 @@ export default function DiagnoseComponent() {
               <Textarea 
                 value={textQuery}
                 onChange={(e) => setTextQuery(e.target.value)}
-                placeholder="Describe the issue or ask a question..."
+                placeholder={t('diagnose.queryPlaceholder')}
                 className="min-h-[60px] flex-grow"
                 disabled={loading}
               />
-              <Button onClick={handleTextSubmit} disabled={(!imageFile && !textQuery) || loading || !user} size="icon" aria-label="Submit text query">
+              <Button onClick={handleTextSubmit} disabled={(!imageFile && !textQuery) || loading || !user} size="icon" aria-label={t('diagnose.textQueryAria')}>
                 {loading ? <Loader2 className="animate-spin" /> : <Send />}
               </Button>
               <Button 
@@ -284,7 +286,7 @@ export default function DiagnoseComponent() {
                 disabled={loading || !user}
                 size="icon"
                 variant={isRecording ? 'destructive' : 'outline'}
-                aria-label="Submit audio query"
+                aria-label={t('diagnose.audioQueryAria')}
               >
                 {isRecording ? <Loader2 className="animate-pulse" /> : <Mic />}
               </Button>
@@ -293,7 +295,7 @@ export default function DiagnoseComponent() {
           {(loading || diagnosisResult) && (
             <div className="mt-6 p-4 bg-accent/20 border rounded-lg">
                 <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-lg font-headline font-semibold text-primary">Diagnosis Result:</h3>
+                    <h3 className="text-lg font-headline font-semibold text-primary">{t('diagnose.resultTitle')}</h3>
                     {audioResponseUri && !loading && (
                         <Button
                         variant="outline"
@@ -301,7 +303,7 @@ export default function DiagnoseComponent() {
                         onClick={() => audioRef.current?.play()}
                         >
                         <Play className="mr-2 h-4 w-4" />
-                        Play Audio
+                        {t('common.playAudio')}
                         </Button>
                     )}
                 </div>
@@ -319,8 +321,8 @@ export default function DiagnoseComponent() {
       
       <Card>
         <CardHeader>
-          <CardTitle className="font-headline text-2xl text-primary flex items-center gap-2"><History />Diagnosis History</CardTitle>
-          <CardDescription>Your past diagnoses are saved here for tracking.</CardDescription>
+          <CardTitle className="font-headline text-2xl text-primary flex items-center gap-2"><History />{t('diagnose.historyTitle')}</CardTitle>
+          <CardDescription>{t('diagnose.historyDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-[500px] pr-4">
@@ -331,17 +333,17 @@ export default function DiagnoseComponent() {
                 <Skeleton className="h-20 w-full" />
               </div>
             ) : history.length === 0 ? (
-              <p className="text-muted-foreground text-center pt-10">No diagnosis history found. Log in to see history.</p>
+              <p className="text-muted-foreground text-center pt-10">{t('diagnose.noHistory')}</p>
             ) : (
               <div className="space-y-4">
                 {history.map((entry) => (
                   <div key={entry.id} className="p-4 bg-card border rounded-lg shadow-sm flex gap-4 items-start">
                     {entry.imageUrl && (
-                      <Image data-ai-hint="plant disease" src={entry.imageUrl} alt="Diagnosed plant" width={64} height={64} className="w-16 h-16 object-cover rounded-md" />
+                      <Image data-ai-hint="plant disease" src={entry.imageUrl} alt={t('diagnose.diagnosedPlantAlt')} width={64} height={64} className="w-16 h-16 object-cover rounded-md" />
                     )}
                     <div className="flex-1">
                       <p className="text-xs text-muted-foreground">
-                        {entry.timestamp ? new Date(entry.timestamp.toDate()).toLocaleString() : 'Loading date...'}
+                        {entry.timestamp ? new Date(entry.timestamp.toDate()).toLocaleString() : t('common.loadingDate')}
                       </p>
                       <p className="text-sm text-foreground/80 mt-1 line-clamp-2">
                         {entry.diagnosis}
@@ -357,5 +359,3 @@ export default function DiagnoseComponent() {
     </div>
   );
 }
-
-    

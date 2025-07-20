@@ -23,11 +23,11 @@ export default function MarketComponent() {
   const { toast } = useToast();
   const recognitionRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const { languageCode, languagePrompt } = useLanguage();
+  const { languageCode, languagePrompt, t } = useLanguage();
 
   const handleAnalyze = async (textQuery: string) => {
     if (!textQuery.trim()) {
-      toast({ title: "Error", description: "Please enter a query for market analysis.", variant: "destructive" });
+      toast({ title: t('common.error'), description: t('market.errorDescription'), variant: "destructive" });
       return;
     }
     setLoading(true);
@@ -49,15 +49,13 @@ export default function MarketComponent() {
 
       const analysisPromise = getMarketInsights(insightsInput);
 
-      // Fetch text result first to display it ASAP
       const analysisResult = await analysisPromise;
       const marketSummary = analysisResult.marketSummary;
       setResult(marketSummary);
 
-      // Then fetch audio in parallel
       const speechPromise = textToSpeech({ text: marketSummary });
       
-      toast({ title: "Success", description: "Market analysis complete." });
+      toast({ title: t('common.success'), description: t('market.successDescription') });
 
       const speechResult = await speechPromise;
       setAudioResponseUri(speechResult.audioDataUri);
@@ -65,7 +63,7 @@ export default function MarketComponent() {
     } catch (error) {
       console.error("Error getting market analysis:", error);
       setResult(`Error: ${(error as Error).message}. Please try again.`);
-      toast({ title: "Analysis Failed", description: (error as Error).message, variant: "destructive" });
+      toast({ title: t('common.analysisFailed'), description: (error as Error).message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -84,7 +82,7 @@ export default function MarketComponent() {
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      toast({ title: "Error", description: "Speech recognition is not supported in this browser.", variant: "destructive" });
+      toast({ title: t('common.error'), description: t('common.speechRecognitionNotSupported'), variant: "destructive" });
       return;
     }
 
@@ -96,7 +94,7 @@ export default function MarketComponent() {
     recognitionRef.current.onstart = () => {
       setIsRecording(true);
       setQuery('');
-      toast({ title: "Listening...", description: `Please speak your query in ${languagePrompt}.`});
+      toast({ title: t('common.listening'), description: `${t('common.speakNow')} ${languagePrompt}.`});
     };
 
     recognitionRef.current.onresult = (event: any) => {
@@ -108,7 +106,7 @@ export default function MarketComponent() {
     recognitionRef.current.onerror = (event: any) => {
       if (event.error !== 'no-speech') {
         console.error("Speech recognition error", event.error);
-        toast({ title: "Speech Error", description: `An error occurred: ${event.error}`, variant: "destructive" });
+        toast({ title: t('common.speechError'), description: `${t('common.errorOccurred')} ${event.error}`, variant: "destructive" });
       }
     };
 
@@ -122,19 +120,19 @@ export default function MarketComponent() {
   return (
     <Card className="max-w-3xl mx-auto">
       <CardHeader>
-        <CardTitle className="font-headline text-2xl text-primary">Real-Time Market Analysis</CardTitle>
-        <CardDescription>Ask about market prices to guide your selling decisions (e.g., "What is the price of tomatoes today?").</CardDescription>
+        <CardTitle className="font-headline text-2xl text-primary">{t('market.title')}</CardTitle>
+        <CardDescription>{t('market.description')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center space-x-2">
             <Textarea
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Enter your query here..."
+              placeholder={t('market.queryPlaceholder')}
               className="min-h-[100px] flex-grow"
               disabled={loading}
             />
-             <Button onClick={handleTextSubmit} disabled={!query || loading} size="icon" aria-label="Submit text query">
+             <Button onClick={handleTextSubmit} disabled={!query || loading} size="icon" aria-label={t('market.textQueryAria')}>
                 {loading ? <Loader2 className="animate-spin" /> : <Send />}
               </Button>
               <Button 
@@ -142,7 +140,7 @@ export default function MarketComponent() {
                 disabled={loading}
                 size="icon"
                 variant={isRecording ? 'destructive' : 'outline'}
-                aria-label="Submit audio query"
+                aria-label={t('market.audioQueryAria')}
               >
                 {isRecording ? <Loader2 className="animate-pulse" /> : <Mic />}
               </Button>
@@ -151,7 +149,7 @@ export default function MarketComponent() {
         {(loading || result) && (
           <div className="mt-6 p-4 bg-accent/20 border rounded-lg">
             <div className="flex justify-between items-center mb-2">
-                <h3 className="text-lg font-headline font-semibold text-primary">Market Analysis:</h3>
+                <h3 className="text-lg font-headline font-semibold text-primary">{t('market.resultTitle')}</h3>
                 {audioResponseUri && !loading && (
                     <Button
                     variant="outline"
@@ -159,7 +157,7 @@ export default function MarketComponent() {
                     onClick={() => audioRef.current?.play()}
                     >
                     <Play className="mr-2 h-4 w-4" />
-                    Play Audio
+                    {t('common.playAudio')}
                     </Button>
                 )}
             </div>
@@ -171,7 +169,7 @@ export default function MarketComponent() {
                 <audio ref={audioRef} src={audioResponseUri} className="hidden" />
             )}
             <p className="mt-4 text-xs text-muted-foreground">
-              <strong>Note:</strong> Market data is from a dummy source for demonstration purposes.
+              <strong>{t('common.note')}:</strong> {t('market.dummyDataNote')}
             </p>
           </div>
         )}
@@ -179,5 +177,3 @@ export default function MarketComponent() {
     </Card>
   );
 }
-
-    

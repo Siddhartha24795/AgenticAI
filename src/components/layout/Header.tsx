@@ -18,25 +18,25 @@ import {
 import { Button } from '../ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-const navItems = [
-  { path: '/', label: 'Home', icon: Home },
-  { path: '/diagnose', label: 'Diagnose', icon: Leaf },
-  { path: '/market', label: 'Market', icon: LineChart },
-  { path: '/schemes', label: 'Schemes', icon: ShieldCheck },
-] as const;
-
 export default function Header() {
   const pathname = usePathname();
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
   const isMobile = useIsMobile();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const navItems = [
+    { path: '/', labelKey: 'header.home', icon: Home },
+    { path: '/diagnose', labelKey: 'header.diagnose', icon: Leaf },
+    { path: '/market', labelKey: 'header.market', icon: LineChart },
+    { path: '/schemes', labelKey: 'header.schemes', icon: ShieldCheck },
+  ] as const;
 
   const renderNavLinks = (isMobileLayout = false) => (
     navItems.map((item) => {
       const linkContent = (
         <>
-          <item.icon className="h-5 w-5" />
-          <span>{item.label}</span>
+          <item.icon className={cn("h-5 w-5", isMobileLayout ? "" : "sm:h-4 sm:w-4")} />
+          <span className={cn(isMobileLayout ? "" : "sm:hidden lg:inline")}>{t(item.labelKey)}</span>
         </>
       );
   
@@ -80,7 +80,7 @@ export default function Header() {
     <header className="bg-primary text-primary-foreground shadow-lg sticky top-0 z-40">
       <div className="container mx-auto flex items-center justify-between p-4 gap-4">
         <h1 className="text-2xl sm:text-3xl font-headline font-bold">
-          <Link href="/">AgriAssist AI</Link>
+          <Link href="/">{t('header.title')}</Link>
         </h1>
         <div className="flex items-center gap-2">
           {isMobile ? (
@@ -88,7 +88,7 @@ export default function Header() {
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="icon" className="bg-transparent hover:bg-primary-foreground/10 text-white border-white/50 hover:text-white">
                   <Menu className="h-5 w-5" />
-                  <span className="sr-only">Open menu</span>
+                  <span className="sr-only">{t('header.openMenu')}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -106,7 +106,7 @@ export default function Header() {
           <Link href="/notify" passHref>
              <Button variant="destructive" size="icon" className="relative animate-pulse">
                 <BellRing className="h-5 w-5" />
-                <span className="sr-only">Notifier</span>
+                <span className="sr-only">{t('header.notifier')}</span>
               </Button>
           </Link>
 
@@ -114,14 +114,14 @@ export default function Header() {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon" className="bg-transparent hover:bg-primary-foreground/10 text-white border-white/50 hover:text-white">
                 <Languages className="h-5 w-5" />
-                <span className="sr-only">Change language</span>
+                <span className="sr-only">{t('header.changeLanguage')}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuRadioGroup value={language} onValueChange={(val) => setLanguage(val as 'en' | 'kn' | 'hi')}>
-                <DropdownMenuRadioItem value="en">English</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="kn">ಕನ್ನಡ (Kannada)</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="hi">हिन्दी (Hindi)</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="en">{t('header.english')}</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="kn">{t('header.kannada')}</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="hi">{t('header.hindi')}</DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
             </DropdownMenuContent>
           </DropdownMenu>
