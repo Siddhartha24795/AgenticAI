@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -13,11 +13,15 @@ import {
 } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Flame, Waves, HeartPulse, MessageSquareWarning, Send, BellRing } from 'lucide-react';
+import { Flame, Waves, HeartPulse, MessageSquareWarning, Send, BellRing, Mic, Loader2 } from 'lucide-react';
+import { useLanguage } from '@/hooks/use-language';
 
 export default function NotifyComponent() {
   const { toast } = useToast();
   const [otherMessage, setOtherMessage] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  const { languageCode, languagePrompt } = useLanguage();
 
   const handleNotification = (type: string, message?: string) => {
     const notificationMessage =
@@ -34,6 +38,49 @@ export default function NotifyComponent() {
     if (type === 'Other') {
       setOtherMessage('');
     }
+  };
+
+  const handleMicClick = () => {
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      setIsRecording(false);
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast({ title: "Error", description: "Speech recognition is not supported in this browser.", variant: "destructive" });
+      return;
+    }
+
+    recognitionRef.current = new SpeechRecognition();
+    recognitionRef.current.lang = languageCode;
+    recognitionRef.current.interimResults = false;
+    recognitionRef.current.maxAlternatives = 1;
+
+    recognitionRef.current.onstart = () => {
+      setIsRecording(true);
+      setOtherMessage('');
+      toast({ title: "Listening...", description: `Please speak your emergency message in ${languagePrompt}.`});
+    };
+
+    recognitionRef.current.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setOtherMessage(transcript);
+    };
+    
+    recognitionRef.current.onerror = (event: any) => {
+       if (event.error !== 'no-speech') {
+        console.error("Speech recognition error", event.error);
+        toast({ title: "Speech Error", description: `An error occurred: ${event.error}`, variant: "destructive" });
+      }
+    };
+
+    recognitionRef.current.onend = () => {
+      setIsRecording(false);
+    };
+
+    recognitionRef.current.start();
   };
 
   return (
@@ -94,12 +141,24 @@ export default function NotifyComponent() {
                 <MessageSquareWarning className="h-6 w-6 text-yellow-600" />
                 Other Emergency
             </h3>
-            <Textarea
-                placeholder="Describe the emergency here..."
-                value={otherMessage}
-                onChange={(e) => setOtherMessage(e.target.value)}
-                className="min-h-[100px]"
-            />
+            <div className="relative">
+              <Textarea
+                  placeholder="Describe the emergency here, or use the microphone..."
+                  value={otherMessage}
+                  onChange={(e) => setOtherMessage(e.target.value)}
+                  className="min-h-[100px] pr-12"
+              />
+              <Button 
+                onClick={handleMicClick}
+                disabled={isRecording}
+                size="icon"
+                variant={isRecording ? 'destructive' : 'ghost'}
+                aria-label="Record emergency message"
+                className="absolute right-2 top-1/2 -translate-y-1/2"
+              >
+                {isRecording ? <Loader2 className="animate-pulse" /> : <Mic />}
+              </Button>
+            </div>
             <Button
                 onClick={() => handleNotification('Other', otherMessage)}
                 disabled={!otherMessage.trim()}
