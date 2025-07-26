@@ -7,18 +7,24 @@ import { getMarketInsights } from '@/ai/flows/get-market-insights';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Mic, Send, Play, StopCircle } from 'lucide-react';
+import { Loader2, Mic, Send, Play, StopCircle, LocateFixed } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '../ui/skeleton';
 import { useLanguage } from '@/hooks/use-language';
 import { getMarketData } from '@/services/market-data';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Label } from '../ui/label';
+import { Input } from '../ui/input';
+
+const DUMMY_LOCATIONS = ["Bengaluru", "Pune", "Mumbai"];
 
 export default function MarketComponent() {
   const [query, setQuery] = useState('');
+  const [location, setLocation] = useState('');
   const [result, setResult] = useState<string | null>(null);
   const [audioResponseUri, setAudioResponseUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
+  const [isRecording, setIsRecording] = useState<null | 'query' | 'location'>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const { toast } = useToast();
   const recognitionRef = useRef<any>(null);
@@ -37,7 +43,7 @@ export default function MarketComponent() {
   }, [audioResponseUri]);
 
   const handleAnalyze = async (textQuery: string) => {
-    if (!textQuery.trim()) {
+    if (!textQuery.trim() || !location) {
       toast({ title: t('common.error'), description: t('market.errorDescription'), variant: "destructive" });
       return;
     }
@@ -46,10 +52,11 @@ export default function MarketComponent() {
     setAudioResponseUri(null);
 
     try {
-      const marketData = await getMarketData();
+      const marketData = await getMarketData(location);
       
       const insightsInput = {
         cropQuery: textQuery,
+        location: location,
         marketData: JSON.stringify(marketData),
         language: languagePrompt,
       };
@@ -80,7 +87,26 @@ export default function MarketComponent() {
     handleAnalyze(query);
   };
 
-  const handleMicClick = () => {
+  const handleUseMyLocation = () => {
+    setLoading(true);
+    toast({
+      title: t('market.fetchingLocation'),
+      description: t('market.fetchingLocationDesc'),
+    });
+    // Simulate fetching location
+    setTimeout(() => {
+      const simulatedLocation = "Bengaluru";
+      setLocation(simulatedLocation);
+      setLoading(false);
+      const description = t('market.locationSetDesc').replace('{location}', simulatedLocation);
+      toast({
+        title: t('market.locationSetTitle'),
+        description: description,
+      });
+    }, 1500);
+  };
+
+  const handleMicClick = (field: 'query' | 'location') => {
     if (audioRef.current && isPlaying) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
@@ -105,15 +131,20 @@ export default function MarketComponent() {
     recognitionRef.current.maxAlternatives = 1;
 
     recognitionRef.current.onstart = () => {
-      setIsRecording(true);
-      setQuery('');
+      setIsRecording(field);
+      if (field === 'query') setQuery('');
+      else setLocation('');
       toast({ title: t('common.listening'), description: `${t('common.speakNow')} ${languagePrompt}.`});
     };
 
     recognitionRef.current.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
-      setQuery(transcript);
-      handleAnalyze(transcript);
+      if (field === 'query') {
+        setQuery(transcript);
+        handleAnalyze(transcript);
+      } else {
+        setLocation(transcript);
+      }
     };
     
     recognitionRef.current.onerror = (event: any) => {
@@ -124,7 +155,7 @@ export default function MarketComponent() {
     };
 
     recognitionRef.current.onend = () => {
-      setIsRecording(false);
+      setIsRecording(null);
     };
 
     recognitionRef.current.start();
@@ -149,26 +180,65 @@ export default function MarketComponent() {
         <CardTitle className="font-headline text-2xl text-primary">{t('market.title')}</CardTitle>
         <CardDescription>{t('market.description')}</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+                <Label htmlFor="location-select">{t('market.locationTitle')}</Label>
+                <div className="flex items-center gap-2">
+                    <Select value={location} onValueChange={setLocation} disabled={loading}>
+                        <SelectTrigger id="location-select">
+                            <SelectValue placeholder={t('market.selectLocationPlaceholder')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {DUMMY_LOCATIONS.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                     <Button variant="outline" size="icon" onClick={handleUseMyLocation} disabled={loading}>
+                        {loading ? <Loader2 className="animate-spin" /> : <LocateFixed />}
+                        <span className="sr-only">{t('market.useMyLocation')}</span>
+                    </Button>
+                </div>
+                 <div className="relative">
+                    <Input 
+                      placeholder="Or type/speak location" 
+                      value={location} 
+                      onChange={(e) => setLocation(e.target.value)}
+                      disabled={loading}
+                      className="pr-10"
+                    />
+                     <Button 
+                      variant={isRecording === 'location' ? 'destructive' : 'ghost'} 
+                      size="icon" 
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                      onClick={() => handleMicClick('location')}
+                      disabled={loading}
+                     >
+                        <Mic />
+                        <span className="sr-only">Speak location</span>
+                    </Button>
+                </div>
+            </div>
+        </div>
+
         <div className="flex items-center space-x-2">
             <Textarea
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t('market.queryPlaceholder')}
               className="min-h-[100px] flex-grow"
-              disabled={loading}
+              disabled={loading || !location}
             />
-             <Button onClick={handleTextSubmit} disabled={!query || loading} size="icon" aria-label={t('market.textQueryAria')}>
-                {loading ? <Loader2 className="animate-spin" /> : <Send />}
+             <Button onClick={handleTextSubmit} disabled={!query || !location || loading} size="icon" aria-label={t('market.textQueryAria')}>
+                {loading && !result ? <Loader2 className="animate-spin" /> : <Send />}
               </Button>
               <Button 
-                onClick={handleMicClick}
-                disabled={loading}
+                onClick={() => handleMicClick('query')}
+                disabled={loading || !location}
                 size="icon"
-                variant={isRecording ? 'destructive' : 'outline'}
+                variant={isRecording === 'query' ? 'destructive' : 'outline'}
                 aria-label={t('market.audioQueryAria')}
               >
-                {isRecording ? <Loader2 className="animate-pulse" /> : <Mic />}
+                {isRecording === 'query' ? <Loader2 className="animate-pulse" /> : <Mic />}
               </Button>
         </div>
         

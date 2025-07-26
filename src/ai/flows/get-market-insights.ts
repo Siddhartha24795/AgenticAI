@@ -14,6 +14,7 @@ import {z} from 'genkit';
 
 const GetMarketInsightsInputSchema = z.object({
   cropQuery: z.string().describe('The farmer\'s question about a specific crop.'),
+  location: z.string().describe('The city/location for the market analysis.'),
   marketData: z.string().describe('JSON string market data with crop prices. The data is in a `records` array and may have an `isDummyData` flag.'),
   language: z.string().describe("The language for the response (e.g., 'English', 'Kannada', 'Hindi')."),
 });
@@ -32,17 +33,19 @@ const prompt = ai.definePrompt({
   name: 'marketInsightsPrompt',
   input: {schema: GetMarketInsightsInputSchema},
   output: {schema: GetMarketInsightsOutputSchema},
-  prompt: `You are an agricultural market analyst. A farmer asked: "{{cropQuery}}". I have fetched the following market data from various mandis: {{{marketData}}}.
+  prompt: `You are an agricultural market analyst. A farmer from {{location}} asked: "{{cropQuery}}". I have fetched the following market data: {{{marketData}}}.
 
 You must respond in a JSON format. The 'marketSummary' field in the JSON should contain your analysis.
 
 First, check if the provided data has a field 'isDummyData' set to true. If it does, you MUST start your response by stating in {{language}} that you were unable to fetch live data and are providing default prices.
 
-Next, analyze the 'records' array in this data and provide a simple, actionable summary for the farmer in clear, easy-to-understand {{language}}. Focus on the price of the requested commodity. If the specific commodity isn't in the data, analyze the general market trends based on the available data. 
+Next, analyze the 'records' array in this data. Your entire analysis should be focused ONLY on the specific commodity mentioned in the farmer's query for the specified {{location}}.
 
-If the 'records' array is empty, you must state that the feature is not configured correctly because the API for market data returned no information.
+If the 'records' array is empty or does not contain data for the specified {{location}}, you must state that you couldn't find data for that exact place and are providing data for the nearest available market based on the provided data. Then proceed with the analysis for that nearby market.
 
-Your analysis should guide their selling decisions. Mention the key commodities and their price ranges from the data.`,
+If the specific commodity is not in the data for the given location, analyze the general market trends for that location based on the other commodities present.
+
+Your analysis must be in simple, clear {{language}} and should guide their selling decisions by mentioning the price of the requested commodity.`,
 });
 
 const getMarketInsightsFlow = ai.defineFlow(

@@ -7,41 +7,65 @@ const DUMMY_MARKET_DATA = {
     { state: 'Karnataka', district: 'Bengaluru', market: 'KR Market', commodity: 'Tomato', modal_price: '25' },
     { state: 'Karnataka', district: 'Bengaluru', market: 'KR Market', commodity: 'Onion', modal_price: '30' },
     { state: 'Karnataka', district: 'Bengaluru', market: 'KR Market', commodity: 'Potato', modal_price: '20' },
+    { state: 'Maharashtra', district: 'Pune', market: 'Pune Market', commodity: 'Tomato', modal_price: '28' },
     { state: 'Maharashtra', district: 'Pune', market: 'Pune Market', commodity: 'Carrot', modal_price: '40' },
     { state: 'Maharashtra', district: 'Pune', market: 'Pune Market', commodity: 'Cabbage', modal_price: '15' },
+    { state: 'Maharashtra', 'district': 'Mumbai', market: 'Dadar Market', commodity: 'Tomato', modal_price: '32' },
   ],
 };
 
-export async function getMarketData() {
+export async function getMarketData(location: string) {
   const apiUrl = process.env.NEXT_PUBLIC_MANDI_API_URL;
-  if (!apiUrl) {
-    console.warn('The Mandi API URL is not configured. Returning dummy data.');
-    return DUMMY_MARKET_DATA;
+  let dataToFilter = DUMMY_MARKET_DATA.records;
+  let isDummy = true;
+
+  if (apiUrl) {
+    try {
+      const response = await fetch(apiUrl, {
+        headers: {
+          'Accept': 'application/json',
+        },
+        cache: 'no-store',
+      });
+
+      console.log('Mandi API Response Status Code:', response.status);
+
+      if (response.ok) {
+        const liveData = await response.json();
+        if (Array.isArray(liveData) && liveData.length > 0) {
+            dataToFilter = liveData;
+            isDummy = false;
+        } else {
+             console.log('Live API returned no records. Using dummy market data.');
+        }
+      } else {
+        const errorBody = await response.text();
+        console.error('API Error Response:', errorBody);
+        console.log('Live API failed. Using dummy market data as a fallback.');
+      }
+    } catch (error) {
+      console.error('Error fetching from Mandi API:', error);
+      console.log('Live API failed. Using dummy market data as a fallback.');
+    }
+  } else {
+    console.warn('The Mandi API URL is not configured. Using dummy data.');
   }
   
-  try {
-    const response = await fetch(apiUrl, {
-      headers: {
-        'Accept': 'application/json',
-      },
-      cache: 'no-store', // Ensure fresh data on every request
-    });
+  const locationLower = location.toLowerCase();
+  const filteredRecords = dataToFilter.filter(record => 
+    record.district?.toLowerCase() === locationLower
+  );
 
-    console.log('Mandi API Response Status Code:', response.status);
-
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.error('API Error Response:', errorBody);
-      console.log('Live API failed. Using dummy market data as a fallback.');
-      return DUMMY_MARKET_DATA;
-    }
-
-    const data = await response.json();
-    // The API returns an array directly, so we wrap it in a `records` object to match the expected format.
-    return { records: data };
-  } catch (error) {
-    console.error('Error fetching from Mandi API:', error);
-    console.log('Live API failed. Using dummy market data as a fallback.');
-    return DUMMY_MARKET_DATA;
+  if (filteredRecords.length > 0) {
+      return {
+          records: filteredRecords,
+          isDummyData: isDummy
+      }
   }
+
+  // If no records for the specific location, return all data and let AI handle it.
+  return {
+      records: dataToFilter,
+      isDummyData: isDummy,
+  };
 }
