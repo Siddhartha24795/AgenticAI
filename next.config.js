@@ -1,14 +1,12 @@
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   webpack: (config, { isServer }) => {
     // These packages are required by Genkit's OpenTelemetry integration,
     // but are not compatible with the client-side browser environment.
-    // We mark them as external to prevent them from being bundled for the client.
-    if (!isServer) {
-      config.externals.push('@opentelemetry/exporter-jaeger');
-      config.externals.push('@opentelemetry/winston-transport');
-    }
+    // We also mark them as external on the server to prevent Webpack
+    // from trying to process them, which can cause errors.
+    config.externals.push('@opentelemetry/exporter-jaeger');
+    config.externals.push('@opentelemetry/winston-transport');
 
     return config;
   },

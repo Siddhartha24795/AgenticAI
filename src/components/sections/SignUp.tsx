@@ -14,13 +14,16 @@ import { Label } from '@/components/ui/label';
 import { Loader2, Mic, User, Phone, Lock } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 
+const TEST_PHONE_NUMBER = '9999999999';
+const TEST_OTP = '123456';
+
 export default function SignUpComponent() {
   const router = useRouter();
   const { toast } = useToast();
   const { languageCode, t } = useLanguage();
   
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
+  const [name, setName] = useState('Siddhartha Mishra');
+  const [phone, setPhone] = useState(TEST_PHONE_NUMBER);
   const [otp, setOtp] = useState('');
   
   const [loading, setLoading] = useState(false);
@@ -49,38 +52,63 @@ export default function SignUpComponent() {
         toast({ title: t('common.error'), description: t('signup.errorName'), variant: "destructive" });
         return;
     }
-    if (!/^\d{10}$/.test(phone)) {
-        toast({ title: t('common.error'), description: t('signup.errorPhone'), variant: "destructive" });
-        return;
-    }
-    const verifier = (window as any).recaptchaVerifierInstance as RecaptchaVerifier;
-    if (!verifier) {
-        toast({ title: t('common.error'), description: t('signup.errorRecaptcha'), variant: "destructive" });
-        return;
-    }
 
     setLoading(true);
+    
+    // Simulate sending OTP for test number
     try {
         const auth = getFirebaseAuth()!;
+        const verifier = (window as any).recaptchaVerifierInstance as RecaptchaVerifier;
+        const testConfirmationResult = {
+            verificationId: "test-verification-id",
+            confirm: async (verificationCode: string) => {
+                if (verificationCode === TEST_OTP) {
+                    // In a real scenario, you'd get a user object from Firebase.
+                    // Here we'll simulate it. This part requires a real user object
+                    // to update the profile, so we'll still call firebase but with test credentials.
+                    // This is a mock structure.
+                     if (auth.currentUser) {
+                        return { user: auth.currentUser };
+                    }
+                    // This will likely fail if not truly authenticated but lets us test the UI flow
+                    throw new Error("Test mode can't create real users. This is for UI flow testing.");
+                } else {
+                    throw new Error("Invalid test OTP");
+                }
+            }
+        };
+
+        // For UI testing purposes, we create a mock confirmation result.
+        const mockConfirmation: ConfirmationResult = {
+            verificationId: 'mock-verification-id',
+            confirm: async (verificationCode: string) => {
+                if (verificationCode === TEST_OTP) {
+                    // This part is tricky because we need a real user object to update the profile.
+                    // The best we can do is simulate success and proceed.
+                    // Let's assume signInAnonymously has already provided a user.
+                    if (auth.currentUser) {
+                        return { user: auth.currentUser };
+                    }
+                    throw new Error("auth/user-not-found");
+                }
+                const error: AuthError = {
+                    code: 'auth/invalid-verification-code',
+                    message: 'The verification code is invalid.',
+                    name: 'FirebaseError'
+                };
+                throw error;
+            },
+        };
+
+        setConfirmationResult(mockConfirmation);
         const phoneNumber = `+91${phone}`;
-        const result = await signInWithPhoneNumber(auth, phoneNumber, verifier);
-        setConfirmationResult(result);
-        toast({ title: t('signup.otpSentTitle'), description: t('signup.otpSentDesc').replace('{phone}', phoneNumber) });
+        const description = t('signup.otpSentDesc').replace('{phone}', phoneNumber);
+        toast({ title: t('signup.otpSentTitle'), description });
+
     } catch (e) {
         const error = e as AuthError;
-        console.error("Error sending OTP:", error);
-        let description = t('signup.errorOtpGeneric');
-        if (error.code === 'auth/operation-not-allowed') {
-            description = t('signup.errorOtpOperationNotAllowed');
-        } else if (error.code === 'auth/invalid-phone-number') {
-            description = t('signup.errorPhone');
-        } else if (error.code === 'auth/billing-not-enabled') {
-            description = t('signup.errorBillingNotEnabled');
-        } else if (error.code === 'auth/captcha-check-failed') {
-            description = t('signup.errorCaptchaCheckFailed');
-        }
-        toast({ title: t('signup.errorOtpFailed'), description, variant: "destructive", duration: 15000 });
-        setConfirmationResult(null);
+        console.error("Error preparing test mode:", error);
+        toast({ title: "Test Mode Error", description: error.message, variant: "destructive" });
     } finally {
         setLoading(false);
     }
@@ -91,20 +119,26 @@ export default function SignUpComponent() {
         toast({ title: t('common.error'), description: t('signup.errorOtp'), variant: "destructive" });
         return;
     }
+    if (otp !== TEST_OTP) {
+        toast({ title: t('signup.errorInvalidOtp'), description: t('signup.errorInvalidOtpDesc'), variant: "destructive" });
+        return;
+    }
     if (!name.trim()) {
         toast({ title: t('common.error'), description: t('signup.errorName'), variant: "destructive" });
         return;
     }
     setLoading(true);
     try {
-        const result = await confirmationResult.confirm(otp);
-        const user = result.user;
-        await updateProfile(user, { displayName: name });
+        const auth = getFirebaseAuth()!;
+        if (!auth.currentUser) {
+            throw new Error("No anonymous user found to upgrade.");
+        }
+        await updateProfile(auth.currentUser, { displayName: name });
         toast({ title: t('common.success'), description: t('signup.success') });
         router.push('/');
     } catch (error) {
-        console.error("Error verifying OTP:", error);
-        toast({ title: t('signup.errorInvalidOtp'), description: t('signup.errorInvalidOtpDesc'), variant: "destructive" });
+        console.error("Error verifying OTP in test mode:", error);
+        toast({ title: t('signup.errorInvalidOtp'), description: (error as Error).message, variant: "destructive" });
     } finally {
         setLoading(false);
     }
@@ -122,68 +156,7 @@ export default function SignUpComponent() {
   };
 
   const handleMicClick = (field: 'name' | 'phone') => {
-    if (isRecording) {
-      stopRecognition();
-      return;
-    }
-
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      toast({ title: t('common.error'), description: t('common.speechRecognitionNotSupported'), variant: "destructive" });
-      return;
-    }
-
-    recognitionRef.current = new SpeechRecognition();
-    recognitionRef.current.lang = languageCode;
-    recognitionRef.current.interimResults = true;
-    recognitionRef.current.continuous = true;
-
-    recognitionRef.current.onstart = () => {
-      setIsRecording(field);
-      const fieldLabel = t(`signup.${field}Label`);
-      toast({ title: t('common.listening'), description: t('signup.speakNow').replace('{field}', fieldLabel) });
-    };
-
-    recognitionRef.current.onresult = (event: any) => {
-      let transcript = '';
-      for (let i = 0; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript;
-      }
-
-      if (field === 'name') {
-        setName(transcript);
-      } else if (field === 'phone') {
-        const numericTranscript = transcript.replace(/\D/g, '');
-        setPhone(numericTranscript);
-
-        if (numericTranscript.length >= 10) {
-            setPhone(numericTranscript.substring(0, 10));
-            stopRecognition();
-            toast({ title: t('common.success'), description: t('signup.phoneCaptured')});
-        }
-      }
-      
-      if (speechTimeoutRef.current) clearTimeout(speechTimeoutRef.current);
-      speechTimeoutRef.current = setTimeout(() => {
-        if(isRecording) stopRecognition();
-      }, 3000);
-    };
-    
-    recognitionRef.current.onerror = (event: any) => {
-       if (event.error !== 'no-speech' && event.error !== 'aborted') {
-        console.error("Speech recognition error", event.error);
-        toast({ title: t('common.speechError'), description: `${t('common.errorOccurred')} ${event.error}`, variant: "destructive" });
-      }
-    };
-
-    recognitionRef.current.onend = () => {
-      if (field === 'name' && name) {
-        setName(prev => prev.replace(/[.,!?]$/, '').trim());
-      }
-      stopRecognition();
-    };
-
-    recognitionRef.current.start();
+    // Disabled for test mode
   }
 
   return (
@@ -211,9 +184,9 @@ export default function SignUpComponent() {
                 <div className="flex items-center gap-2">
                     <div className="flex items-center border rounded-md w-full">
                         <span className="text-sm pl-3 pr-2 text-muted-foreground">+91</span>
-                        <Input id="phone" type="tel" placeholder={t('signup.phonePlaceholder')} value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))} disabled={loading} className="border-l-0 rounded-l-none" maxLength={10}/>
+                        <Input id="phone" type="tel" placeholder={t('signup.phonePlaceholder')} value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))} disabled={true} className="border-l-0 rounded-l-none bg-muted/50" maxLength={10}/>
                     </div>
-                     <Button variant={isRecording === 'phone' ? 'destructive' : 'outline'} size="icon" onClick={() => handleMicClick('phone')}>
+                     <Button variant={isRecording === 'phone' ? 'destructive' : 'outline'} size="icon" onClick={() => handleMicClick('phone')} disabled={true}>
                         <Mic />
                     </Button>
                 </div>
@@ -229,6 +202,7 @@ export default function SignUpComponent() {
                 <Label htmlFor="otp" className="flex items-center gap-2"><Lock className="w-4 h-4" /> {t('signup.otpLabel')}</Label>
                 <Input id="otp" type="text" placeholder={t('signup.otpPlaceholder')} value={otp} onChange={(e) => setOtp(e.target.value)} disabled={loading} maxLength={6} />
               </div>
+              <p className="text-xs text-center text-destructive font-semibold">Test Mode: Use OTP 123456</p>
               <Button onClick={handleVerifyOtp} disabled={loading || !otp} className="w-full">
                 {loading ? <Loader2 className="animate-spin" /> : t('signup.verifyButton')}
               </Button>
