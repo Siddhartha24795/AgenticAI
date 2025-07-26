@@ -75,6 +75,8 @@ export default function SignUpComponent() {
             description = "Phone number sign-in is not enabled for this Firebase project. Please enable it in the Firebase console under Authentication > Sign-in method.";
         } else if (error.code === 'auth/invalid-phone-number') {
             description = "The phone number is not valid. Please enter a 10-digit number.";
+        } else if (error.code === 'auth/billing-not-enabled') {
+            description = "The Firebase project's free quota for phone authentication has been exceeded. Please enable billing for this project in the Google Cloud Console to continue.";
         } else {
             description = error.message;
         }
