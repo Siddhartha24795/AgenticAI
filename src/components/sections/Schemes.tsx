@@ -7,10 +7,20 @@ import { getSchemeInformation } from '@/ai/flows/get-scheme-information';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Mic, Send, Play, StopCircle } from 'lucide-react';
+import { Loader2, Mic, Send, Play, StopCircle, MapPin } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '../ui/skeleton';
 import { useLanguage } from '@/hooks/use-language';
+import { Label } from '../ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+
+const DUMMY_STATES = ["Karnataka", "Maharashtra", "Tamil Nadu", "Uttar Pradesh"];
+const DUMMY_DISTRICTS: Record<string, string[]> = {
+    "Karnataka": ["Bengaluru Urban", "Mysuru", "Mangaluru"],
+    "Maharashtra": ["Mumbai", "Pune", "Nagpur"],
+    "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai"],
+    "Uttar Pradesh": ["Lucknow", "Kanpur", "Agra"],
+};
 
 const GOVERNMENT_SCHEME_DOCS = [
     {
@@ -46,6 +56,8 @@ function cleanTextForSpeech(text: string): string {
 
 export default function SchemesComponent() {
   const [query, setQuery] = useState('');
+  const [state, setState] = useState('');
+  const [district, setDistrict] = useState('');
   const [result, setResult] = useState<string | null>(null);
   const [audioResponseUri, setAudioResponseUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -55,6 +67,14 @@ export default function SchemesComponent() {
   const recognitionRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { languageCode, languagePrompt, t } = useLanguage();
+
+  useEffect(() => {
+    // Simulate fetching and setting current location on mount
+    const simulatedState = "Karnataka";
+    const simulatedDistrict = "Bengaluru Urban";
+    setState(simulatedState);
+    setDistrict(simulatedDistrict);
+  }, []);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -81,6 +101,8 @@ export default function SchemesComponent() {
             schemeQuery: textQuery,
             schemeDocuments: GOVERNMENT_SCHEME_DOCS,
             language: languagePrompt,
+            state: state,
+            district: district,
         };
 
         const searchPromise = getSchemeInformation(searchInput);
@@ -180,6 +202,31 @@ export default function SchemesComponent() {
         <CardDescription>{t('schemes.description')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div className="space-y-2">
+                <Label className="font-semibold flex items-center gap-2"><MapPin/> {t('admin.notify.byState')}</Label>
+                <Select value={state} onValueChange={(val) => { setState(val); setDistrict(''); }} disabled={loading}>
+                    <SelectTrigger>
+                        <SelectValue placeholder={t('admin.notify.selectState')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {DUMMY_STATES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+             <div className="space-y-2">
+                <Label className="font-semibold flex items-center gap-2"><MapPin/> {t('admin.notify.byDistrict')}</Label>
+                <Select value={district} onValueChange={setDistrict} disabled={loading || !state}>
+                    <SelectTrigger>
+                        <SelectValue placeholder={t('admin.notify.selectDistrict')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {(DUMMY_DISTRICTS[state] || []).map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+        </div>
+
         <div className="flex items-center space-x-2">
             <Textarea
               value={query}

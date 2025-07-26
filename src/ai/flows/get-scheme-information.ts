@@ -19,6 +19,8 @@ const GetSchemeInformationInputSchema = z.object({
     content: z.string()
   })).describe('Array of government scheme documents to use for RAG.'),
   language: z.string().describe("The language for the response (e.g., 'English', 'Kannada', 'Hindi')."),
+  state: z.string().describe("The user's state."),
+  district: z.string().describe("The user's district."),
 });
 export type GetSchemeInformationInput = z.infer<typeof GetSchemeInformationInputSchema>;
 
@@ -35,14 +37,15 @@ const prompt = ai.definePrompt({
   name: 'getSchemeInformationPrompt',
   input: {schema: GetSchemeInformationInputSchema},
   output: {schema: GetSchemeInformationOutputSchema},
-  prompt: `You are an expert on government agricultural schemes in India. A farmer asked: "{{schemeQuery}}".
+  prompt: `You are an expert on government agricultural schemes in India. A farmer from {{district}}, {{state}} asked: "{{schemeQuery}}".
 
 You must respond in a JSON format. The 'schemeInformation' field should contain your response. Your entire response must be in {{language}}.
 
-Based on the provided documents, find all relevant and up-to-date Central, State, and District-level government schemes.
+Your response must have two parts:
 
-For each scheme you identify, you must format the information as follows:
-
+Part 1: Detailed Answer to the Query
+- Based on the provided documents, find all schemes that directly answer the farmer's query: "{{schemeQuery}}".
+- For each matching scheme, you MUST format the information as follows:
 1.  **Policy Name**: (Include abbreviation if any).
 2.  **Scope**: (Central / State / District).
 3.  **Eligibility Criteria**: (Detail who can apply).
@@ -50,7 +53,14 @@ For each scheme you identify, you must format the information as follows:
 5.  **Official Links / References**: (Provide only official government websites).
 6.  **Current Status**: (e.g., Active, Applications Open, etc.).
 
-If no relevant scheme is found in the documents, state that clearly in {{language}}. Your response must be clear, well-structured, and easy for a farmer to understand.
+If no scheme directly matches the query, state that clearly.
+
+Part 2: Other Relevant Schemes
+- After answering the query, add a separator and a heading "Other Relevant Schemes for {{district}}, {{state}}".
+- Under this heading, list other relevant Central, State, or District-level schemes from the documents that might be useful for a farmer in this location, even if they don't match the specific query.
+- For this list, provide only the **Policy Name** and a one-sentence summary of its **Offerings / Benefits**.
+
+Your entire response must be clear, well-structured, and easy for a farmer to understand.
 
 Documents:
 {{#each schemeDocuments}}
