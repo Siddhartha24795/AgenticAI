@@ -33,12 +33,16 @@ export default function SignUpComponent() {
   useEffect(() => {
     const auth = getFirebaseAuth();
     if (auth && !recaptchaVerifierRef.current) {
-        recaptchaVerifierRef.current = setupRecaptcha('recaptcha-container', {
-            'size': 'invisible',
-            'callback': () => {
-                // reCAPTCHA solved, allow send OTP
-            }
-        });
+        // Ensure this runs only once
+        if (!(window as any).recaptchaVerifier) {
+            (window as any).recaptchaVerifier = setupRecaptcha('recaptcha-container', {
+                'size': 'invisible',
+                'callback': () => {
+                    // reCAPTCHA solved, allow send OTP
+                }
+            });
+        }
+        recaptchaVerifierRef.current = (window as any).recaptchaVerifier;
     }
   }, []);
 
@@ -175,9 +179,9 @@ export default function SignUpComponent() {
               <div className="space-y-2">
                 <Label htmlFor="phone" className="flex items-center gap-2"><Phone className="w-4 h-4" /> Mobile Number</Label>
                 <div className="flex items-center gap-2">
-                    <div className="flex items-center border rounded-md">
+                    <div className="flex items-center border rounded-md w-full">
                         <span className="text-sm pl-3 pr-2 text-muted-foreground">+91</span>
-                        <Input id="phone" type="tel" placeholder="xxxxxxxxxx" value={phone} onChange={(e) => setPhone(e.target.value)} disabled={loading} className="border-l-0 rounded-l-none" maxLength={10}/>
+                        <Input id="phone" type="tel" placeholder="xxxxxxxxxx" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))} disabled={loading} className="border-l-0 rounded-l-none" maxLength={10}/>
                     </div>
                      <Button variant={isRecording === 'phone' ? 'destructive' : 'outline'} size="icon" onClick={() => handleMicClick('phone')}>
                         <Mic />
