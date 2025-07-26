@@ -83,7 +83,7 @@ export default function SignUpComponent() {
             description = error.message;
         }
 
-        toast({ title: t('signup.errorOtpFailed'), description: description, variant: "destructive" });
+        toast({ title: t('signup.errorOtpFailed'), description: description, variant: "destructive", duration: 10000 });
     } finally {
         setLoading(false);
     }
@@ -160,7 +160,8 @@ export default function SignUpComponent() {
         transcript = transcript.replace(/\s+/g, '');
         if (/^\d{10}$/.test(transcript)) {
             setPhone(transcript);
-            toast({ title: t('common.success'), description: t('signup.phoneCaptured') });
+            const phoneCapturedMessage = t('signup.phoneCaptured');
+            toast({ title: t('common.success'), description: phoneCapturedMessage });
             stopRecognition();
         } else {
             toast({ title: t('common.error'), description: t('signup.errorPhone'), variant: 'destructive' });
@@ -226,6 +227,7 @@ export default function SignUpComponent() {
             <>
               <div className="space-y-2">
                 <Label htmlFor="otp" className="flex items-center gap-2"><Lock className="w-4 h-4" /> {t('signup.otpLabel')}</Label>
+
                 <Input id="otp" type="text" placeholder={t('signup.otpPlaceholder')} value={otp} onChange={(e) => setOtp(e.target.value)} disabled={loading} maxLength={6} />
               </div>
               <Button onClick={handleVerifyOtp} disabled={loading || !otp} className="w-full">
