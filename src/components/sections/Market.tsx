@@ -7,14 +7,13 @@ import { getMarketInsights } from '@/ai/flows/get-market-insights';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Mic, Send, Play, StopCircle, LocateFixed } from 'lucide-react';
+import { Loader2, Mic, Send, Play, StopCircle } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '../ui/skeleton';
 import { useLanguage } from '@/hooks/use-language';
 import { getMarketData } from '@/services/market-data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Label } from '../ui/label';
-import { Input } from '../ui/input';
 
 const DUMMY_LOCATIONS = ["Bengaluru", "Pune", "Mumbai"];
 
@@ -30,6 +29,18 @@ export default function MarketComponent() {
   const recognitionRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { languageCode, languagePrompt, t } = useLanguage();
+
+  useEffect(() => {
+    // Simulate fetching and setting current location on mount
+    const simulatedLocation = "Bengaluru";
+    setLocation(simulatedLocation);
+    const description = t('market.locationSetDesc').replace('{location}', simulatedLocation);
+    toast({
+        title: t('market.locationSetTitle'),
+        description: description,
+    });
+  }, [t, toast]);
+
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -87,25 +98,6 @@ export default function MarketComponent() {
     handleAnalyze(query);
   };
 
-  const handleUseMyLocation = () => {
-    setLoading(true);
-    toast({
-      title: t('market.fetchingLocation'),
-      description: t('market.fetchingLocationDesc'),
-    });
-    // Simulate fetching location
-    setTimeout(() => {
-      const simulatedLocation = "Bengaluru";
-      setLocation(simulatedLocation);
-      setLoading(false);
-      const description = t('market.locationSetDesc').replace('{location}', simulatedLocation);
-      toast({
-        title: t('market.locationSetTitle'),
-        description: description,
-      });
-    }, 1500);
-  };
-
   const handleMicClick = (field: 'query' | 'location') => {
     if (audioRef.current && isPlaying) {
         audioRef.current.pause();
@@ -133,7 +125,6 @@ export default function MarketComponent() {
     recognitionRef.current.onstart = () => {
       setIsRecording(field);
       if (field === 'query') setQuery('');
-      else setLocation('');
       toast({ title: t('common.listening'), description: `${t('common.speakNow')} ${languagePrompt}.`});
     };
 
@@ -181,41 +172,18 @@ export default function MarketComponent() {
         <CardDescription>{t('market.description')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-                <Label htmlFor="location-select">{t('market.locationTitle')}</Label>
-                <div className="flex items-center gap-2">
-                    <Input 
-                      id="location-input"
-                      placeholder={t('market.locationPlaceholder')}
-                      value={location} 
-                      onChange={(e) => setLocation(e.target.value)}
-                      disabled={loading}
-                    />
-                    <Select value={location} onValueChange={setLocation} disabled={loading}>
-                        <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder={t('market.selectLocationPlaceholder')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {DUMMY_LOCATIONS.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                     <Button 
-                        variant={isRecording === 'location' ? 'destructive' : 'outline'} 
-                        size="icon" 
-                        onClick={() => handleMicClick('location')}
-                        disabled={loading}
-                     >
-                        <Mic />
-                        <span className="sr-only">Speak location</span>
-                    </Button>
-                    <Button variant="outline" size="icon" onClick={handleUseMyLocation} disabled={loading}>
-                        {loading ? <Loader2 className="animate-spin" /> : <LocateFixed />}
-                        <span className="sr-only">{t('market.useMyLocation')}</span>
-                    </Button>
-                </div>
-            </div>
+        <div className="space-y-2">
+            <Label htmlFor="location-select">{t('market.locationTitle')}: <span className="font-bold text-primary">{location}</span></Label>
+            <Select onValueChange={setLocation} disabled={loading}>
+                <SelectTrigger id="location-select">
+                    <SelectValue placeholder={t('market.otherLocationPlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                    {DUMMY_LOCATIONS.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
+                </SelectContent>
+            </Select>
         </div>
+
 
         <div className="flex items-center space-x-2">
             <Textarea

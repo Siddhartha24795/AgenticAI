@@ -65,6 +65,7 @@ export const translations = {
     title: { en: 'Real-Time Market Analysis', kn: 'ನೈಜ-ಸಮಯದ ಮಾರುಕಟ್ಟೆ ವಿಶ್ಲೇಷಣೆ', hi: 'वास्तविक समय में बाजार विश्लेषण' },
     description: { en: 'Ask about market prices to guide your selling decisions (e.g., "What is the price of tomatoes today?").', kn: 'ನಿಮ್ಮ ಮಾರಾಟದ ನಿರ್ಧಾರಗಳಿಗೆ ಮಾರ್ಗದರ್ಶನ ನೀಡಲು ಮಾರುಕಟ್ಟೆ ಬೆಲೆಗಳ ಬಗ್ಗೆ ಕೇಳಿ (ಉದಾ., "ಇಂದು ಟೊಮೆಟೊ ಬೆಲೆ ಎಷ್ಟು?").', hi: 'अपने बिक्री निर्णयों का मार्गदर्शन करने के लिए बाजार मूल्य के बारे में पूछें (उदाहरण के लिए, "आज टमाटर का मूल्य क्या है?")।' },
     locationTitle: { en: 'Location', kn: 'ಸ್ಥಳ', hi: 'स्थान' },
+    otherLocationPlaceholder: { en: 'Check prices at other places', kn: 'ಇತರ ಸ್ಥಳಗಳಲ್ಲಿ ಬೆಲೆಗಳನ್ನು ಪರಿಶೀಲಿಸಿ', hi: 'अन्य स्थानों पर कीमतें जांचें' },
     selectLocationPlaceholder: { en: 'Select a city', kn: 'ನಗರವನ್ನು ಆಯ್ಕೆಮಾಡಿ', hi: 'एक शहर चुनें' },
     locationPlaceholder: { en: 'Type or speak a location...', kn: 'ಸ್ಥಳವನ್ನು ಟೈಪ್ ಮಾಡಿ ಅಥವಾ ಮಾತನಾಡಿ...', hi: 'एक स्थान टाइप करें या बोलें...' },
     useMyLocation: { en: 'Use My Location', kn: 'ನನ್ನ ಸ್ಥಳ ಬಳಸಿ', hi: 'मेरा स्थान उपयोग करें' },

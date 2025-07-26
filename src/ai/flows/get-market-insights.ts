@@ -45,7 +45,7 @@ If the 'records' array is empty or does not contain data for the specified {{loc
 
 If the specific commodity is not in the data for the given location, analyze the general market trends for that location based on the other commodities present.
 
-Your analysis must be in simple, clear {{language}} and should guide their selling decisions by mentioning the price of the requested commodity.`,
+Your analysis must be in simple, clear {{language}} and should guide their selling decisions by mentioning the price of the requested commodity per quintal.`,
 });
 
 const getMarketInsightsFlow = ai.defineFlow(

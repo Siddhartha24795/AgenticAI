@@ -4,13 +4,13 @@
 const DUMMY_MARKET_DATA = {
   isDummyData: true,
   records: [
-    { state: 'Karnataka', district: 'Bengaluru', market: 'KR Market', commodity: 'Tomato', modal_price: '25' },
-    { state: 'Karnataka', district: 'Bengaluru', market: 'KR Market', commodity: 'Onion', modal_price: '30' },
-    { state: 'Karnataka', district: 'Bengaluru', market: 'KR Market', commodity: 'Potato', modal_price: '20' },
-    { state: 'Maharashtra', district: 'Pune', market: 'Pune Market', commodity: 'Tomato', modal_price: '28' },
-    { state: 'Maharashtra', district: 'Pune', market: 'Pune Market', commodity: 'Carrot', modal_price: '40' },
-    { state: 'Maharashtra', district: 'Pune', market: 'Pune Market', commodity: 'Cabbage', modal_price: '15' },
-    { state: 'Maharashtra', 'district': 'Mumbai', market: 'Dadar Market', commodity: 'Tomato', modal_price: '32' },
+    { state: 'Karnataka', district: 'Bengaluru', market: 'KR Market', commodity: 'Tomato', modal_price: '2500' },
+    { state: 'Karnataka', district: 'Bengaluru', market: 'KR Market', commodity: 'Onion', modal_price: '3000' },
+    { state: 'Karnataka', district: 'Bengaluru', market: 'KR Market', commodity: 'Potato', modal_price: '2000' },
+    { state: 'Maharashtra', district: 'Pune', market: 'Pune Market', commodity: 'Tomato', modal_price: '2800' },
+    { state: 'Maharashtra', district: 'Pune', market: 'Pune Market', commodity: 'Carrot', modal_price: '4000' },
+    { state: 'Maharashtra', district: 'Pune', market: 'Pune Market', commodity: 'Cabbage', modal_price: '1500' },
+    { state: 'Maharashtra', 'district': 'Mumbai', market: 'Dadar Market', commodity: 'Tomato', modal_price: '3200' },
   ],
 };
 
