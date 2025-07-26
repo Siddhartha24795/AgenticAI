@@ -37,7 +37,11 @@ const prompt = ai.definePrompt({
 
 You must respond in a JSON format. The 'marketSummary' field in the JSON should contain your analysis.
 
-Please analyze the 'records' array in this data and provide a simple, actionable summary for the farmer in clear, easy-to-understand {{language}}. Focus on the price of the requested commodity. If the specific commodity isn't in the data, analyze the general market trends based on the available data. Your analysis should guide their selling decisions for the {{location}} market. Mention the key commodities and their price ranges (modal price) from the data.`,
+Please analyze the 'records' array in this data and provide a simple, actionable summary for the farmer in clear, easy-to-understand {{language}}. Focus on the price of the requested commodity. If the specific commodity isn't in the data, analyze the general market trends based on the available data. 
+
+If the 'records' array is empty, you must state that the feature is not configured correctly because the API key for market data is missing, and ask the user to contact the administrator.
+
+Your analysis should guide their selling decisions for the {{location}} market. Mention the key commodities and their price ranges (modal price) from the data.`,
 });
 
 const getMarketInsightsFlow = ai.defineFlow(
