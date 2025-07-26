@@ -185,36 +185,33 @@ export default function MarketComponent() {
             <div className="space-y-2">
                 <Label htmlFor="location-select">{t('market.locationTitle')}</Label>
                 <div className="flex items-center gap-2">
+                    <Input 
+                      id="location-input"
+                      placeholder={t('market.locationPlaceholder')}
+                      value={location} 
+                      onChange={(e) => setLocation(e.target.value)}
+                      disabled={loading}
+                    />
                     <Select value={location} onValueChange={setLocation} disabled={loading}>
-                        <SelectTrigger id="location-select">
+                        <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder={t('market.selectLocationPlaceholder')} />
                         </SelectTrigger>
                         <SelectContent>
                             {DUMMY_LOCATIONS.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
                         </SelectContent>
                     </Select>
-                     <Button variant="outline" size="icon" onClick={handleUseMyLocation} disabled={loading}>
-                        {loading ? <Loader2 className="animate-spin" /> : <LocateFixed />}
-                        <span className="sr-only">{t('market.useMyLocation')}</span>
-                    </Button>
-                </div>
-                 <div className="relative">
-                    <Input 
-                      placeholder="Or type/speak location" 
-                      value={location} 
-                      onChange={(e) => setLocation(e.target.value)}
-                      disabled={loading}
-                      className="pr-10"
-                    />
                      <Button 
-                      variant={isRecording === 'location' ? 'destructive' : 'ghost'} 
-                      size="icon" 
-                      className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
-                      onClick={() => handleMicClick('location')}
-                      disabled={loading}
+                        variant={isRecording === 'location' ? 'destructive' : 'outline'} 
+                        size="icon" 
+                        onClick={() => handleMicClick('location')}
+                        disabled={loading}
                      >
                         <Mic />
                         <span className="sr-only">Speak location</span>
+                    </Button>
+                    <Button variant="outline" size="icon" onClick={handleUseMyLocation} disabled={loading}>
+                        {loading ? <Loader2 className="animate-spin" /> : <LocateFixed />}
+                        <span className="sr-only">{t('market.useMyLocation')}</span>
                     </Button>
                 </div>
             </div>

@@ -66,6 +66,7 @@ export const translations = {
     description: { en: 'Ask about market prices to guide your selling decisions (e.g., "What is the price of tomatoes today?").', kn: 'ನಿಮ್ಮ ಮಾರಾಟದ ನಿರ್ಧಾರಗಳಿಗೆ ಮಾರ್ಗದರ್ಶನ ನೀಡಲು ಮಾರುಕಟ್ಟೆ ಬೆಲೆಗಳ ಬಗ್ಗೆ ಕೇಳಿ (ಉದಾ., "ಇಂದು ಟೊಮೆಟೊ ಬೆಲೆ ಎಷ್ಟು?").', hi: 'अपने बिक्री निर्णयों का मार्गदर्शन करने के लिए बाजार मूल्य के बारे में पूछें (उदाहरण के लिए, "आज टमाटर का मूल्य क्या है?")।' },
     locationTitle: { en: 'Location', kn: 'ಸ್ಥಳ', hi: 'स्थान' },
     selectLocationPlaceholder: { en: 'Select a city', kn: 'ನಗರವನ್ನು ಆಯ್ಕೆಮಾಡಿ', hi: 'एक शहर चुनें' },
+    locationPlaceholder: { en: 'Type or speak a location...', kn: 'ಸ್ಥಳವನ್ನು ಟೈಪ್ ಮಾಡಿ ಅಥವಾ ಮಾತನಾಡಿ...', hi: 'एक स्थान टाइप करें या बोलें...' },
     useMyLocation: { en: 'Use My Location', kn: 'ನನ್ನ ಸ್ಥಳ ಬಳಸಿ', hi: 'मेरा स्थान उपयोग करें' },
     fetchingLocation: { en: 'Fetching your location...', kn: 'ನಿಮ್ಮ ಸ್ಥಳವನ್ನು ತರಲಾಗುತ್ತಿದೆ...', hi: 'आपका स्थान प्राप्त किया जा रहा है...' },
     fetchingLocationDesc: { en: 'This is a simulation for demo purposes.', kn: 'ಇದು ಡೆಮೊ ಉದ್ದೇಶಗಳಿಗಾಗಿ ಒಂದು ಸಿಮ್ಯುಲೇಶನ್ ಆಗಿದೆ.', hi: 'यह डेमो उद्देश्यों के लिए एक सिमुलेशन है।' },
