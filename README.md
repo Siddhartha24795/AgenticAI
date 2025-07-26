@@ -19,6 +19,7 @@ Agrigentic AI is a modern web application built with Next.js, designed to be a c
 - **UI Components**: [ShadCN UI](https://ui.shadcn.com/)
 - **AI Integration**: [Genkit (by Firebase)](https://firebase.google.com/docs/genkit) with the [Google Gemini API](https://ai.google.dev/docs/gemini_api_overview)
 - **Backend Services**: [Firebase Authentication](https://firebase.google.com/docs/auth) & [Cloud Firestore](https://firebase.google.com/docs/firestore)
+- **Hosting**: [Firebase App Hosting](https://firebase.google.com/docs/app-hosting)
 
 ---
 
@@ -31,6 +32,7 @@ Follow these instructions to set up and run the project locally for development 
 Before you begin, ensure you have the following installed:
 - [Node.js](https://nodejs.org/en) (v20 or later recommended)
 - [npm](https://www.npmjs.com/get-npm) or [yarn](https://yarnpkg.com/getting-started/install)
+- [Firebase CLI](https://firebase.google.com/docs/cli) (run `npm install -g firebase-tools`)
 
 ### 1. Set Up Your Firebase Project
 
@@ -38,7 +40,7 @@ This project uses Firebase for user authentication (anonymous sign-in) and Fires
 
 1.  **Create a Firebase Project**: If you don't have one already, go to the [Firebase Console](https://console.firebase.google.com/) and create a new project.
 2.  **Add a Web App**: In your project's dashboard, add a new Web Application. Firebase will provide you with a configuration object containing your API keys. You will need these for your environment file.
-3.  **Enable Authentication**: In the Firebase Console, navigate to **Build > Authentication**. Go to the **Sign-in method** tab and enable the **Anonymous** sign-in provider.
+3.  **Enable Authentication**: In the Firebase Console, navigate to **Build > Authentication**. Go to the **Sign-in method** tab and enable the **Anonymous** and **Phone Number** sign-in providers.
 4.  **Set Up Firestore**: Go to **Build > Firestore Database** and create a database. Start in **production mode** and choose a location near your users.
 
 ### 2. Set Up Your Google Cloud Project for AI
@@ -68,6 +70,10 @@ NEXT_PUBLIC_FIREBASE_APP_ID="YOUR_FIREBASE_APP_ID"
 # Google Gemini API Key for Genkit
 # Get this from your Google Cloud project credentials
 GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
+
+# (Optional) Data.gov.in API Key for Market Analysis
+# Get this from https://data.gov.in/
+DATAGOVIN_API_KEY="YOUR_DATAGOVIN_API_KEY"
 ```
 
 ### 4. Install Dependencies
@@ -82,7 +88,7 @@ _or if you use yarn:_
 yarn install
 ```
 
-### 5. Run the Application
+### 5. Run the Application Locally
 
 Once the installation is complete, start the development server:
 
@@ -98,4 +104,38 @@ The application will now be running locally, typically at `http://localhost:9002
 
 ---
 
-This README provides a comprehensive guide to getting Agrigentic AI up and running on a local development machine.
+## Deployment
+
+To deploy your application to the cloud and get a public URL, follow these steps.
+
+### 1. Log in to Firebase
+
+If you haven't already, log in to the Firebase CLI using your Google account:
+```bash
+firebase login
+```
+
+### 2. Initialize App Hosting
+
+In your project's root directory, run the `init` command. This will connect your local code to your Firebase project and set up a backend resource for App Hosting.
+```bash
+firebase init apphosting
+```
+The CLI will guide you through the process. Select the Firebase project you created earlier.
+
+### 3. Deploy to the Cloud
+
+After initialization, you can deploy the application by running:
+```bash
+firebase apphosting:backends:deploy
+```
+This command will build your Next.js application and deploy it to Firebase App Hosting. Once it's finished, it will output your public URL (e.g., `https://your-app-name-id.web.app`).
+
+### 4. Redeploying Changes
+
+Any time you make changes to the code that you want to publish to your live URL, simply run the deploy command again:
+```bash
+firebase apphosting:backends:deploy
+```
+This will update your live application with the latest version of your code.
+```
