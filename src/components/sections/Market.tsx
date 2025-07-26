@@ -7,20 +7,15 @@ import { getMarketInsights } from '@/ai/flows/get-market-insights';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Mic, Send, Play, MapPin, StopCircle, LocateFixed } from 'lucide-react';
+import { Loader2, Mic, Send, Play, StopCircle } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '../ui/skeleton';
 import { useLanguage } from '@/hooks/use-language';
-import { Label } from '../ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { getMarketData } from '@/services/market-data';
-
-const CITIES_OF_INDIA = ["Mumbai", "Delhi", "Bengaluru", "Kolkata", "Chennai", "Hyderabad", "Pune", "Ahmedabad", "Jaipur", "Lucknow"];
 
 export default function MarketComponent() {
   const [query, setQuery] = useState('');
   const [result, setResult] = useState<string | null>(null);
-  const [location, setLocation] = useState(CITIES_OF_INDIA[2]); // Default to Bengaluru
   const [audioResponseUri, setAudioResponseUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -41,14 +36,6 @@ export default function MarketComponent() {
     }
   }, [audioResponseUri]);
 
-  const handleSimulateLocation = () => {
-    toast({ title: t('market.fetchingLocation'), description: t('market.fetchingLocationDesc') });
-    setTimeout(() => {
-        setLocation("Bengaluru");
-        toast({ title: t('market.locationSetTitle'), description: t('market.locationSetDesc') });
-    }, 1500);
-  };
-
   const handleAnalyze = async (textQuery: string) => {
     if (!textQuery.trim()) {
       toast({ title: t('common.error'), description: t('market.errorDescription'), variant: "destructive" });
@@ -59,11 +46,10 @@ export default function MarketComponent() {
     setAudioResponseUri(null);
 
     try {
-      const marketData = await getMarketData(location, 10);
+      const marketData = await getMarketData();
       
       const insightsInput = {
         cropQuery: textQuery,
-        location: location,
         marketData: JSON.stringify(marketData),
         language: languagePrompt,
       };
@@ -164,29 +150,6 @@ export default function MarketComponent() {
         <CardDescription>{t('market.description')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-            <Label htmlFor="location-select" className="flex items-center gap-2 font-semibold">
-              <MapPin className="w-5 h-5 text-primary" />
-              {t('market.locationTitle')}
-            </Label>
-            <div className="flex gap-2">
-              <Select value={location} onValueChange={setLocation}>
-                <SelectTrigger id="location-select">
-                  <SelectValue placeholder={t('market.selectLocationPlaceholder')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {CITIES_OF_INDIA.map(city => (
-                    <SelectItem key={city} value={city}>{city}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button variant="outline" onClick={handleSimulateLocation}>
-                <LocateFixed className="mr-2 h-4 w-4" />
-                {t('market.useMyLocation')}
-              </Button>
-            </div>
-        </div>
-
         <div className="flex items-center space-x-2">
             <Textarea
               value={query}

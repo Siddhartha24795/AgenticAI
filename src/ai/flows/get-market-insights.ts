@@ -14,8 +14,7 @@ import {z} from 'genkit';
 
 const GetMarketInsightsInputSchema = z.object({
   cropQuery: z.string().describe('The farmer\'s question about a specific crop.'),
-  location: z.string().describe('The location (city) for which the market insights are requested.'),
-  marketData: z.string().describe('JSON string market data with crop prices from data.gov.in. The data is in a `records` array.'),
+  marketData: z.string().describe('JSON string market data with crop prices. The data is in a `records` array.'),
   language: z.string().describe("The language for the response (e.g., 'English', 'Kannada', 'Hindi')."),
 });
 export type GetMarketInsightsInput = z.infer<typeof GetMarketInsightsInputSchema>;
@@ -33,15 +32,15 @@ const prompt = ai.definePrompt({
   name: 'marketInsightsPrompt',
   input: {schema: GetMarketInsightsInputSchema},
   output: {schema: GetMarketInsightsOutputSchema},
-  prompt: `You are an agricultural market analyst. A farmer in {{location}} asked: "{{cropQuery}}". I have fetched the following real-time market data from various mandis: {{{marketData}}}.
+  prompt: `You are an agricultural market analyst. A farmer asked: "{{cropQuery}}". I have fetched the following real-time market data from various mandis: {{{marketData}}}.
 
 You must respond in a JSON format. The 'marketSummary' field in the JSON should contain your analysis.
 
 Please analyze the 'records' array in this data and provide a simple, actionable summary for the farmer in clear, easy-to-understand {{language}}. Focus on the price of the requested commodity. If the specific commodity isn't in the data, analyze the general market trends based on the available data. 
 
-If the 'records' array is empty, you must state that the feature is not configured correctly because the API key for market data is missing, and ask the user to contact the administrator.
+If the 'records' array is empty, you must state that the feature is not configured correctly because the API for market data returned no information.
 
-Your analysis should guide their selling decisions for the {{location}} market. Mention the key commodities and their price ranges (modal price) from the data.`,
+Your analysis should guide their selling decisions. Mention the key commodities and their price ranges from the data.`,
 });
 
 const getMarketInsightsFlow = ai.defineFlow(
