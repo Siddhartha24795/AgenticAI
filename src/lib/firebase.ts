@@ -69,13 +69,15 @@ function setupRecaptcha(containerId: string, params?: RecaptchaParameters): Reca
     if (!auth || typeof window === 'undefined') return null;
 
     // To prevent re-rendering issues, we store the verifier on the window object.
-    if ((window as any).recaptchaVerifier) {
-      return (window as any).recaptchaVerifier;
+    if ((window as any).recaptchaVerifierInstance) {
+        // Here you might want to render it again if it was cleared
+        // but for invisible recaptcha, this might not be needed.
+        return (window as any).recaptchaVerifierInstance;
     }
     
     const verifier = new RecaptchaVerifier(auth, containerId, params);
 
-    (window as any).recaptchaVerifier = verifier;
+    (window as any).recaptchaVerifierInstance = verifier;
 
     return verifier;
 }

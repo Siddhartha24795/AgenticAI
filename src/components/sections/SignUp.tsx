@@ -35,13 +35,14 @@ export default function SignUpComponent() {
   useEffect(() => {
     const auth = getFirebaseAuth();
     if (auth && !recaptchaVerifierRef.current) {
-        if (!(window as any).recaptchaVerifier) {
-            (window as any).recaptchaVerifier = setupRecaptcha('recaptcha-container', {
+        // Ensure the container exists before setting up reCAPTCHA
+        const recaptchaContainer = document.getElementById('recaptcha-container');
+        if (recaptchaContainer) {
+            recaptchaVerifierRef.current = setupRecaptcha('recaptcha-container', {
                 'size': 'invisible',
-                'callback': () => {},
+                'callback': () => {}, // empty callback for invisible reCAPTCHA
             });
         }
-        recaptchaVerifierRef.current = (window as any).recaptchaVerifier;
     }
   }, []);
 
