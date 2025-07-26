@@ -4,7 +4,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getFirebaseAuth, setupRecaptcha } from '@/lib/firebase';
-import type { ConfirmationResult, RecaptchaVerifier } from 'firebase/auth';
+import type { ConfirmationResult, RecaptchaVerifier, AuthError } from 'firebase/auth';
 import { signInWithPhoneNumber, updateProfile } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -59,9 +59,16 @@ export default function SignUpComponent() {
         const result = await signInWithPhoneNumber(auth, `+${phone}`, verifier);
         setConfirmationResult(result);
         toast({ title: "OTP Sent", description: `An OTP has been sent to +${phone}.` });
-    } catch (error) {
+    } catch (e) {
+        const error = e as AuthError;
         console.error("Error sending OTP:", error);
-        toast({ title: "Failed to Send OTP", description: (error as Error).message, variant: "destructive" });
+        let description = "An unknown error occurred while sending the OTP.";
+        if (error.code === 'auth/operation-not-allowed') {
+            description = "Phone number sign-in is not enabled for this Firebase project. Please enable it in the Firebase console under Authentication > Sign-in method.";
+        } else {
+            description = error.message;
+        }
+        toast({ title: "Failed to Send OTP", description, variant: "destructive", duration: 10000 });
     } finally {
         setLoading(false);
     }
