@@ -13,32 +13,14 @@ import { Skeleton } from '../ui/skeleton';
 import { useLanguage } from '@/hooks/use-language';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { getMarketData } from '@/services/market-data';
 
-const DUMMY_MARKET_DATA = {
-    "id": 1,
-    "title": "iPhone 9",
-    "description": "An apple mobile which is nothing like apple",
-    "price": 549,
-    "discountPercentage": 12.96,
-    "rating": 4.69,
-    "stock": 94,
-    "brand": "Apple",
-    "category": "smartphones",
-    "thumbnail": "https://cdn.dummyjson.com/product-images/1/thumbnail.jpg",
-    "images": [
-        "https://cdn.dummyjson.com/product-images/1/1.jpg",
-        "https://cdn.dummyjson.com/product-images/1/2.jpg",
-        "https://cdn.dummyjson.com/product-images/1/3.jpg",
-        "https://cdn.dummyjson.com/product-images/1/4.jpg",
-        "https://cdn.dummyjson.com/product-images/1/thumbnail.jpg"
-    ]
-};
 const CITIES_OF_INDIA = ["Mumbai", "Delhi", "Bengaluru", "Kolkata", "Chennai", "Hyderabad", "Pune", "Ahmedabad", "Jaipur", "Lucknow"];
 
 export default function MarketComponent() {
   const [query, setQuery] = useState('');
   const [result, setResult] = useState<string | null>(null);
-  const [location, setLocation] = useState(CITIES_OF_INDIA[0]);
+  const [location, setLocation] = useState(CITIES_OF_INDIA[2]); // Default to Bengaluru
   const [audioResponseUri, setAudioResponseUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -77,10 +59,12 @@ export default function MarketComponent() {
     setAudioResponseUri(null);
 
     try {
+      const marketData = await getMarketData(location, 10);
+      
       const insightsInput = {
         cropQuery: textQuery,
         location: location,
-        marketData: JSON.stringify(DUMMY_MARKET_DATA),
+        marketData: JSON.stringify(marketData.records),
         language: languagePrompt,
       };
 
@@ -97,8 +81,9 @@ export default function MarketComponent() {
 
     } catch (error) {
       console.error("Error getting market analysis:", error);
-      setResult(`Error: ${(error as Error).message}. Please try again.`);
-      toast({ title: t('common.analysisFailed'), description: (error as Error).message, variant: "destructive" });
+      const errorMessage = (error as Error).message;
+      setResult(`Error: ${errorMessage}. Please try again.`);
+      toast({ title: t('common.analysisFailed'), description: errorMessage, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -246,7 +231,7 @@ export default function MarketComponent() {
                 <audio ref={audioRef} src={audioResponseUri} className="hidden" />
             )}
             <p className="mt-4 text-xs text-muted-foreground">
-              <strong>{t('common.note')}:</strong> {t('market.dummyDataNote')}
+              <strong>{t('common.note')}:</strong> {t('market.realDataNote')}
             </p>
           </div>
         )}

@@ -2,9 +2,9 @@
 export const translations = {
   layout: {
     title: {
-      en: 'AgriAssist AI',
-      kn: 'ಅಗ್ರಿಅಸಿಸ್ಟ್ AI',
-      hi: 'एग्रीअसिस्ट AI',
+      en: 'Agrigentic AI',
+      kn: 'ಅಗ್ರಿಜೆಂಟಿಕ್ AI',
+      hi: 'एग्रीजेंटिक AI',
     },
     description: {
         en: 'AI-powered assistant for farmers',
@@ -13,7 +13,7 @@ export const translations = {
     }
   },
   header: {
-    title: { en: 'AgriAssist AI', kn: 'ಅಗ್ರಿಅಸಿಸ್ಟ್ AI', hi: 'एग्रीअसिस्ट AI' },
+    title: { en: 'Agrigentic AI', kn: 'ಅಗ್ರಿಜೆಂಟಿಕ್ AI', hi: 'एग्रीजेंटिक AI' },
     home: { en: 'Home', kn: 'ಹೋಮ್', hi: 'होम' },
     diagnose: { en: 'Diagnose', kn: 'ರೋಗನಿರ್ಣಯ', hi: 'निदान' },
     market: { en: 'Market', kn: 'ಮಾರುಕಟ್ಟೆ', hi: 'बाजार' },
@@ -75,7 +75,7 @@ export const translations = {
     textQueryAria: { en: 'Submit text query', kn: 'ಪಠ್ಯ ಪ್ರಶ್ನೆಯನ್ನು ಸಲ್ಲಿಸಿ', hi: 'पाठ्य प्रश्न सबमिट करें' },
     audioQueryAria: { en: 'Submit audio query', kn: 'ಆಡಿಯೋ ಪ್ರಶ್ನೆಯನ್ನು ಸಲ್ಲಿಸಿ', hi: 'ऑडियो प्रश्न सबमिट करें' },
     resultTitle: { en: 'Market Analysis:', kn: 'ಮಾರುಕಟ್ಟೆ ವಿಶ್ಲೇಷಣೆ:', hi: 'बाजार विश्लेषण:' },
-    dummyDataNote: { en: 'Market data is from a dummy source for demonstration purposes.', kn: 'ಮಾರುಕಟ್ಟೆ ಡೇಟಾ ಪ್ರದರ್ಶನ ಉದ್ದೇಶಗಳಿಗಾಗಿ ಡಮ್ಮಿ ಮೂಲದಿಂದ ಬಂದಿದೆ.', hi: 'बाजार डेटा प्रदर्शन उद्देश्यों के लिए एक डमी स्रोत से है।' },
+    realDataNote: { en: 'Market data is from the Government of India\'s open data portal.', kn: 'ಮಾರುಕಟ್ಟೆ ಡೇಟಾ ಭಾರತ ಸರ್ಕಾರದ ಮುಕ್ತ ಡೇಟಾ ಪೋರ್ಟಲ್‌ನಿಂದ ಬಂದಿದೆ.', hi: 'बाजार डेटा भारत सरकार के ओपन डेटा पोर्टल से है।' },
     errorDescription: { en: "Please enter a query for market analysis.", kn: "ಮಾರುಕಟ್ಟೆ ವಿಶ್ಲೇಷಣೆಗಾಗಿ ದಯವಿಟ್ಟು ಪ್ರಶ್ನೆಯನ್ನು ನಮೂದಿಸಿ.", hi: "कृपया बाजार विश्लेषण के लिए एक प्रश्न दर्ज करें।" },
     successDescription: { en: "Market analysis complete.", kn: "ಮಾರುಕಟ್ಟೆ ವಿಶ್ಲೇಷಣೆ ಪೂರ್ಣಗೊಂಡಿದೆ.", hi: "बाजार विश्लेषण पूरा हुआ।" },
   },
