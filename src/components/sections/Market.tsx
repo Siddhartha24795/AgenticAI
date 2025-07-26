@@ -107,7 +107,7 @@ export default function MarketComponent() {
       return;
     }
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       toast({ title: t('common.error'), description: t('common.speechRecognitionNotSupported'), variant: "destructive" });
       return;
