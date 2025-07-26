@@ -13,6 +13,7 @@ export async function getMarketData() {
       headers: {
         'Accept': 'application/json',
       },
+      cache: 'no-store', // Ensure fresh data on every request
     });
 
     console.log('Mandi API Response Status Code:', response.status);
@@ -20,14 +21,16 @@ export async function getMarketData() {
     if (!response.ok) {
       const errorBody = await response.text();
       console.error('API Error Response:', errorBody);
-      throw new Error(`Failed to fetch market data: ${response.status} ${response.statusText}`);
+      // Return empty records instead of throwing an error
+      return { records: [] };
     }
 
     const data = await response.json();
-    // The new API returns an array directly, so we wrap it in a `records` object to match the expected format.
+    // The API returns an array directly, so we wrap it in a `records` object to match the expected format.
     return { records: data };
   } catch (error) {
     console.error('Error fetching from Mandi API:', error);
-    throw new Error('Could not retrieve market data. Please try again later.');
+    // Return empty records on any failure to prevent crashing.
+    return { records: [] };
   }
 }
