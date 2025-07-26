@@ -18,7 +18,7 @@ import { ScrollArea } from '../ui/scroll-area';
 
 const DUMMY_STATES = ["Karnataka", "Maharashtra", "Tamil Nadu", "Uttar Pradesh"];
 const DUMMY_DISTRICTS: Record<string, string[]> = {
-    "Karnataka": ["Bengaluru Urban", "Mysuru", "Mangaluru"],
+    "Karnataka": ["Bengaluru Urban", "Mysuru", "Mangaluru", "Kalaburagi", "Mandya"],
     "Maharashtra": ["Mumbai", "Pune", "Nagpur"],
     "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai"],
     "Uttar Pradesh": ["Lucknow", "Kanpur", "Agra"],
@@ -26,22 +26,39 @@ const DUMMY_DISTRICTS: Record<string, string[]> = {
 
 const GOVERNMENT_SCHEME_DOCS = [
     {
-        title: "Pradhan Mantri Krishi Sinchai Yojana (PMKSY) - Drip Irrigation",
-        content: `The Pradhan Mantri Krishi Sinchai Yojana (PMKSY) aims to expand cultivated area under assured irrigation, improve on-farm water use efficiency to reduce wastage of water, enhance the adoption of precision irrigation (Drip and Sprinkler), recharge aquifers and introduce sustainable water conservation practices.
-        Eligibility: All farmers are eligible. Priority is given to small and marginal farmers. Minimum age is 18.
-        Application Link: https://pmksy.gov.in/`
+        title: "PM-Kisan Samman Nidhi (Income Support)",
+        content: `Overview: A central-sector scheme launched on February 1, 2019, offers ₹6,000/year per small or marginal farmer family, disbursed as ₹2,000 every four months.
+State-wise status for Karnataka: As of the 18th installment period (Aug–Nov 2024), 43.48 lakh farmers in Karnataka received payments under PM-KISAN. Nationally, over 9.59 crore farmers were covered in all states combined.
+Steps for farmers to receive PM-Kisan: Ensure Aadhaar is linked to your bank account and your e-KYC is complete. Confirm your entry in the beneficiary list via the official PM-Kisan portal (pmkisan.gov.in). Once verified, ₹2,000 per installment will be DBT credited, three times a year.
+Disbursement timeline: The 19th installment was disbursed on February 24, 2025, reaching over 9.8 crore farmers. The expected 20th installment is projected for June–July 2025.
+Official Link: pmkisan.gov.in`
     },
     {
-        title: "Soil Health Card Scheme",
-        content: `The Soil Health Card (SHC) scheme is promoted by the Department of Agriculture & Farmers Welfare, Ministry of Agriculture & Farmers Welfare. It aims at promoting Integrated Nutrient Management (INM) through judicious use of chemicals and organic fertilizers including bio-fertilizers and also soil test based balanced use of fertilizers.
-        Eligibility: All farmers with agricultural land. No age limit.
-        Application Link: https://soilhealth.dac.gov.in/`
+        title: "Pradhan Mantri Fasal Bima Yojana (PMFBY – Crop Insurance)",
+        content: `Overview: Launched in February 2016, PMFBY provides comprehensive crop insurance covering pre-sowing risk, yield loss, post-harvest damage, and localized calamities like hailstorms or floods. It is administered at the state level in coordination with central MoA&FW and empanelled insurance companies.
+State-wise deployment (case: Karnataka): In Kalaburagi District, Karnataka, over the past three years, 5,61,082 farmers insured their crops, receiving total compensation of ₹954.61 crore during the 2025 monsoon season alone. Farmers are urged to register by July 31, 2025 to qualify for compensation during Kharif cropping season.
+Registration Steps for Farmers: Visit Gram-One centre, CSC, bank, or post office to enroll for PMFBY. Provide details of crops sown and area covered. Pay a subsidized premium based on crop and irrigation status (e.g. Rainfed Tur: ₹388.5/acre; irrigated Cotton: ₹1,492.3/acre). After harvest and loss event, farm-level loss assessment is carried out, and compensation is disbursed via DBT.
+Scheme Continuation & Technology Push: The Union Cabinet has approved continuity of PMFBY and RWBCIS through 2025–26. State-of-the-art tech such as YES-TECH, drones, satellite imagery and remote sensing is now used in yield estimation and claims processing—Karnataka is among the 9 major participating states.
+Official Link: pmfby.gov.in`
     },
     {
-        title: "Kisan Credit Card (KCC) Scheme",
-        content: `The Kisan Credit Card (KCC) scheme provides adequate and timely credit support from the banking system to the farmers for their cultivation needs. This includes short term credit for crop production, post-harvest expenses, produce marketing loan, consumption requirements of farmer household, working capital for maintenance of farm assets and activities allied to agriculture, and investment credit for agriculture and allied activities.
-        Eligibility: Farmers - individual/joint cultivators aged 18-75, tenant farmers, oral lessees & sharecroppers, SHGs/Joint Liability Groups of farmers.
-        Application Link: https://www.sbi.co.in/web/agri-rural/agriculture-banking/crop-loan/kisan-credit-card`
+        title: "PM-KUSUM (Solar Irrigation & Renewable Energy)",
+        content: `Overview: The Pradhan Mantri Kisan Urja Suraksha evam Utthaan Mahabhiyan (PM-KUSUM) scheme offers subsidies up to ~60% for solar pumps, plus option to sell surplus power to the grid. It is available across states, including Karnataka. It encourages diesel reduction and clean energy adoption.
+How to Navigate: Visit local agriculture/zilla offices or CSCs to enroll. Meet eligibility criteria (landholding size, crop type, etc.). Submit applications early for funding cycles.`
+    },
+    {
+        title: "PM-FME (Micro Food Processing Enterprises)",
+        content: `Overview: The Pradhan Mantri Formalisation of Micro food processing Enterprises (PM-FME) scheme is a Central-State co-funded support program. It offers up to ₹15 lakh per unit (₹6 lakh central, ₹9 lakh state) for agri-processing entrepreneurs. There has been strong uptake seen in Karnataka's Mandya district.
+How to Navigate: Visit local agriculture/zilla offices or CSCs to enroll. Meet eligibility criteria and submit applications early for funding cycles.`
+    },
+    {
+        title: "Other National Agriculture Schemes",
+        content: `Agriculture Infrastructure Fund: Provides low-interest credit for agri-infrastructure projects.
+National Horticulture Mission (NHM): Promotes horticulture sector development.
+National Livestock Mission: Focuses on development of the livestock sector.
+Formation of FPOs: Scheme to create and promote 10,000 Farmer Producer Organizations (FPOs).
+ATMA (Agricultural Technology Management Agency): A scheme for strengthening extension services.
+All these schemes are applied in Karnataka and other states as per central rollout.`
     }
 ];
 
