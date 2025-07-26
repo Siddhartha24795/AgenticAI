@@ -14,7 +14,25 @@ import { useLanguage } from '@/hooks/use-language';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
-const DUMMY_MARKET_API_URL = 'https://dummyjson.com/products/1';
+const DUMMY_MARKET_DATA = {
+    "id": 1,
+    "title": "iPhone 9",
+    "description": "An apple mobile which is nothing like apple",
+    "price": 549,
+    "discountPercentage": 12.96,
+    "rating": 4.69,
+    "stock": 94,
+    "brand": "Apple",
+    "category": "smartphones",
+    "thumbnail": "https://cdn.dummyjson.com/product-images/1/thumbnail.jpg",
+    "images": [
+        "https://cdn.dummyjson.com/product-images/1/1.jpg",
+        "https://cdn.dummyjson.com/product-images/1/2.jpg",
+        "https://cdn.dummyjson.com/product-images/1/3.jpg",
+        "https://cdn.dummyjson.com/product-images/1/4.jpg",
+        "https://cdn.dummyjson.com/product-images/1/thumbnail.jpg"
+    ]
+};
 const CITIES_OF_INDIA = ["Mumbai", "Delhi", "Bengaluru", "Kolkata", "Chennai", "Hyderabad", "Pune", "Ahmedabad", "Jaipur", "Lucknow"];
 
 export default function MarketComponent() {
@@ -59,32 +77,22 @@ export default function MarketComponent() {
     setAudioResponseUri(null);
 
     try {
-      const marketResponse = await fetch(DUMMY_MARKET_API_URL);
-      if (!marketResponse.ok) {
-        throw new Error(`HTTP error! status: ${marketResponse.status}`);
-      }
-      const marketData = await marketResponse.json();
-
       const insightsInput = {
         cropQuery: textQuery,
         location: location,
-        marketData: JSON.stringify(marketData),
+        marketData: JSON.stringify(DUMMY_MARKET_DATA),
         language: languagePrompt,
       };
 
       const analysisPromise = getMarketInsights(insightsInput);
-      
-      analysisPromise.then(res => {
-        setResult(res.marketSummary);
-        return textToSpeech({ text: res.marketSummary });
-      }).then(speechResult => {
-        setAudioResponseUri(speechResult.audioDataUri);
-      }).catch(err => {
-        console.error("Error during analysis or speech synthesis:", err);
-        toast({ title: t('common.analysisFailed'), description: (err as Error).message, variant: "destructive" });
+      const speechPromise = analysisPromise.then(res => {
+          setResult(res.marketSummary);
+          return textToSpeech({ text: res.marketSummary });
       });
 
-      await analysisPromise;
+      const [_, speechResult] = await Promise.all([analysisPromise, speechPromise]);
+      setAudioResponseUri(speechResult.audioDataUri);
+      
       toast({ title: t('common.success'), description: t('market.successDescription') });
 
     } catch (error) {
