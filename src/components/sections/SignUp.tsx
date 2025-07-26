@@ -35,12 +35,11 @@ export default function SignUpComponent() {
   useEffect(() => {
     const auth = getFirebaseAuth();
     if (auth && !recaptchaVerifierRef.current) {
-        // Ensure the container exists before setting up reCAPTCHA
         const recaptchaContainer = document.getElementById('recaptcha-container');
         if (recaptchaContainer) {
             recaptchaVerifierRef.current = setupRecaptcha('recaptcha-container', {
                 'size': 'invisible',
-                'callback': () => {}, // empty callback for invisible reCAPTCHA
+                'callback': () => {},
             });
         }
     }
@@ -163,11 +162,10 @@ export default function SignUpComponent() {
         }
       }
       
-      // Reset timeout on new speech
       if (speechTimeoutRef.current) clearTimeout(speechTimeoutRef.current);
       speechTimeoutRef.current = setTimeout(() => {
         if(isRecording) stopRecognition();
-      }, 3000); // 3-second pause timeout
+      }, 3000);
     };
     
     recognitionRef.current.onerror = (event: any) => {
