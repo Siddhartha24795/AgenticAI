@@ -16,7 +16,7 @@ import { useLanguage } from '@/hooks/use-language';
 
 // Test credentials
 const TEST_PHONE_NUMBER = '7905118695';
-const TEST_OTP = '247956'; // Firebase requires a 6-digit OTP for testing.
+const TEST_OTP = '247952'; // Firebase requires a 6-digit OTP for testing.
 
 export default function SignUpComponent() {
   const router = useRouter();
@@ -24,7 +24,7 @@ export default function SignUpComponent() {
   const { languageCode, t } = useLanguage();
   
   const [name, setName] = useState('');
-  const [phone, setPhone] = useState(TEST_PHONE_NUMBER);
+  const [phone, setPhone] = useState('');
   const [age, setAge] = useState('');
   const [otp, setOtp] = useState('');
   
@@ -244,7 +244,7 @@ export default function SignUpComponent() {
                 </div>
                 <p className="text-xs text-muted-foreground">{t('signup.phoneHint')}</p>
               </div>
-              <Button onClick={handleSendOtp} disabled={loading || !phone || !name || !age} className="w-full">
+              <Button onClick={handleSendOtp} disabled={loading || !name || !age} className="w-full">
                 {loading ? <Loader2 className="animate-spin" /> : t('signup.sendOtpButton')}
               </Button>
             </>

@@ -10,7 +10,7 @@ import { useLanguage } from "@/hooks/use-language";
 export default function HomeComponent() {
     const { user, isAuthReady } = useAuth();
     const { t } = useLanguage();
-    const userName = user?.isAnonymous ? t('home.farmer') : 'Siddhartha Mishra';
+    const userName = user?.displayName || (user?.isAnonymous ? t('home.farmer') : 'Siddhartha Mishra');
 
     if (!isAuthReady) {
         return (

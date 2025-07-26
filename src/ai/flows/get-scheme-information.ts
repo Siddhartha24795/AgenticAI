@@ -67,6 +67,7 @@ TASK 2: OTHER RELEVANT SCHEMES (for 'otherRelevantSchemes')
 - Review all the provided documents again.
 - Identify other Central, State, or District-level schemes that could be beneficial for a farmer in {{district}}, {{state}}{{#if age}} of age {{age}}{{/if}}, even if they don't match the specific query.
 - For this list, provide only the "Policy Name" and a one-sentence summary of its "Offerings / Benefits" for each scheme.
+- If no schemes seem relevant based on the user's profile, provide a general list of at least two important national schemes like "Kisan Credit Card (KCC)" and "Pradhan Mantri Fasal Bima Yojana (PMFBY)" with their official links. Ensure this field is never empty.
 
 Documents:
 {{#each schemeDocuments}}
