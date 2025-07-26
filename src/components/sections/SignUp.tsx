@@ -76,8 +76,10 @@ export default function SignUpComponent() {
             description = t('signup.errorPhone');
         } else if (error.code === 'auth/billing-not-enabled') {
             description = t('signup.errorBillingNotEnabled');
+        } else if (error.code === 'auth/captcha-check-failed') {
+            description = t('signup.errorCaptchaCheckFailed');
         }
-        toast({ title: t('signup.errorOtpFailed'), description, variant: "destructive", duration: 10000 });
+        toast({ title: t('signup.errorOtpFailed'), description, variant: "destructive", duration: 15000 });
     } finally {
         setLoading(false);
     }
@@ -137,7 +139,7 @@ export default function SignUpComponent() {
 
     recognitionRef.current.onstart = () => {
       setIsRecording(field);
-      toast({ title: t('common.listening'), description: t('signup.speakNow', { field }) });
+      toast({ title: t('common.listening'), description: t('signup.speakNow', { field: t(`signup.${field}Label`) }) });
     };
 
     recognitionRef.current.onresult = (event: any) => {

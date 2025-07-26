@@ -147,6 +147,7 @@ export const translations = {
     errorOtpGeneric: { en: 'An unknown error occurred while sending the OTP.', kn: 'ಒಟಿಪಿ ಕಳುಹಿಸುವಾಗ ಅಜ್ಞಾತ ದೋಷ ಸಂಭವಿಸಿದೆ.', hi: 'ओटीपी भेजते समय एक अज्ञात त्रुटि हुई।' },
     errorOtpOperationNotAllowed: { en: 'Phone number sign-in is not enabled. Please contact support.', kn: 'ಫೋನ್ ಸಂಖ್ಯೆ ಸೈನ್-ಇನ್ ಸಕ್ರಿಯಗೊಳಿಸಲಾಗಿಲ್ಲ. ದಯವಿಟ್ಟು ಬೆಂಬಲವನ್ನು ಸಂಪರ್ಕಿಸಿ.', hi: 'फ़ोन नंबर साइन-इन सक्षम नहीं है। कृपया सहायता से संपर्क करें।' },
     errorBillingNotEnabled: { en: 'The free quota for phone authentication has been exceeded. Please contact support.', kn: 'ಫೋನ್ ದೃಢೀಕರಣಕ್ಕಾಗಿ ಉಚಿತ ಕೋಟಾ ಮೀರಿದೆ. ದಯವಿಟ್ಟು ಬೆಂಬಲವನ್ನು ಸಂಪರ್ಕಿಸಿ.', hi: 'फ़ोन प्रमाणीकरण के लिए मुफ्त कोटा समाप्त हो गया है। कृपया सहायता से संपर्क करें।' },
+    errorCaptchaCheckFailed: { en: 'Domain not authorized. Please add this app\'s domain to the Firebase console under Authentication > Settings > Authorized domains.', kn: 'ಡೊಮೇನ್ ಅಧಿಕೃತಗೊಂಡಿಲ್ಲ. ದಯವಿಟ್ಟು ಈ ಅಪ್ಲಿಕೇಶನ್‌ನ ಡೊಮೇನ್ ಅನ್ನು ಫೈರ್‌ಬೇಸ್ ಕನ್ಸೋಲ್‌ನಲ್ಲಿ ದೃಢೀಕರಣ > ಸೆಟ್ಟಿಂಗ್‌ಗಳು > ಅಧಿಕೃತ ಡೊಮೇನ್‌ಗಳ ಅಡಿಯಲ್ಲಿ ಸೇರಿಸಿ.', hi: 'डोमेन अधिकृत नहीं है। कृपया इस ऐप के डोमेन को फायरबेस कंसोल में प्रमाणीकरण > सेटिंग्स > अधिकृत डोमेन के तहत जोड़ें।' },
     errorOtpFailed: { en: 'Failed to Send OTP', kn: 'ಒಟಿಪಿ ಕಳುಹಿಸಲು ವಿಫಲವಾಗಿದೆ', hi: 'ओटीपी भेजने में विफल' },
     errorOtp: { en: 'Please enter the OTP.', kn: 'ದಯವಿಟ್ಟು ಒಟಿಪಿ ನಮೂದಿಸಿ.', hi: 'कृपया ओटीपी दर्ज करें।' },
     success: { en: 'You have been successfully signed up.', kn: 'ನೀವು ಯಶಸ್ವಿಯಾಗಿ ಸೈನ್ ಅಪ್ ಮಾಡಿದ್ದೀರಿ.', hi: 'आपने सफलतापूर्वक साइन अप कर लिया है।' },
