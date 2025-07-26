@@ -29,17 +29,16 @@ export default function SignUpComponent() {
 
   const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
   const recognitionRef = useRef<any>(null);
+  const speechTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
 
   useEffect(() => {
     const auth = getFirebaseAuth();
     if (auth && !recaptchaVerifierRef.current) {
-        // Ensure this runs only once
         if (!(window as any).recaptchaVerifier) {
             (window as any).recaptchaVerifier = setupRecaptcha('recaptcha-container', {
                 'size': 'invisible',
-                'callback': () => {
-                    // reCAPTCHA solved, allow send OTP
-                }
+                'callback': () => {},
             });
         }
         recaptchaVerifierRef.current = (window as any).recaptchaVerifier;
@@ -51,7 +50,7 @@ export default function SignUpComponent() {
         toast({ title: "Error", description: "Please enter your name.", variant: "destructive" });
         return;
     }
-    if (!phone.trim() || !/^\d{10}$/.test(phone)) {
+    if (!/^\d{10}$/.test(phone)) {
         toast({ title: "Error", description: "Please enter a valid 10-digit phone number.", variant: "destructive" });
         return;
     }
@@ -109,10 +108,20 @@ export default function SignUpComponent() {
     }
   };
 
+  const stopRecognition = () => {
+    if (recognitionRef.current) {
+        recognitionRef.current.stop();
+    }
+    if (speechTimeoutRef.current) {
+        clearTimeout(speechTimeoutRef.current);
+        speechTimeoutRef.current = null;
+    }
+    setIsRecording(null);
+  };
+
   const handleMicClick = (field: 'name' | 'phone') => {
     if (isRecording) {
-      recognitionRef.current?.stop();
-      setIsRecording(null);
+      stopRecognition();
       return;
     }
 
@@ -124,8 +133,8 @@ export default function SignUpComponent() {
 
     recognitionRef.current = new SpeechRecognition();
     recognitionRef.current.lang = languageCode;
-    recognitionRef.current.interimResults = false;
-    recognitionRef.current.maxAlternatives = 1;
+    recognitionRef.current.interimResults = true;
+    recognitionRef.current.continuous = true;
 
     recognitionRef.current.onstart = () => {
       setIsRecording(field);
@@ -133,24 +142,43 @@ export default function SignUpComponent() {
     };
 
     recognitionRef.current.onresult = (event: any) => {
-      let transcript = event.results[0][0].transcript;
-      if (field === 'name') {
-        // Remove trailing punctuation and trim whitespace
-        setName(transcript.replace(/[.,!?]$/, '').trim());
-      } else if (field === 'phone') {
-        setPhone(transcript.replace(/\D/g, ''));
+      let transcript = '';
+      for (let i = 0; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
       }
+
+      if (field === 'name') {
+        setName(transcript);
+      } else if (field === 'phone') {
+        const numericTranscript = transcript.replace(/\D/g, '');
+        setPhone(numericTranscript);
+
+        if (numericTranscript.length >= 10) {
+            setPhone(numericTranscript.substring(0, 10));
+            stopRecognition();
+            toast({ title: "Success", description: "10-digit number captured."});
+        }
+      }
+      
+      // Reset timeout on new speech
+      if (speechTimeoutRef.current) clearTimeout(speechTimeoutRef.current);
+      speechTimeoutRef.current = setTimeout(() => {
+        if(isRecording) stopRecognition();
+      }, 3000); // 3-second pause timeout
     };
     
     recognitionRef.current.onerror = (event: any) => {
-       if (event.error !== 'no-speech') {
+       if (event.error !== 'no-speech' && event.error !== 'aborted') {
         console.error("Speech recognition error", event.error);
         toast({ title: t('common.speechError'), description: `${t('common.errorOccurred')} ${event.error}`, variant: "destructive" });
       }
     };
 
     recognitionRef.current.onend = () => {
-      setIsRecording(null);
+      if (field === 'name' && name) {
+        setName(prev => prev.replace(/[.,!?]$/, '').trim());
+      }
+      stopRecognition();
     };
 
     recognitionRef.current.start();
