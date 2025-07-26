@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Mic, User, Phone, Lock } from 'lucide-react';
+import { Loader2, Mic, User, Phone, Lock, Calendar } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 
 export default function SignUpComponent() {
@@ -21,10 +21,11 @@ export default function SignUpComponent() {
   
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [age, setAge] = useState('');
   const [otp, setOtp] = useState('');
   
   const [loading, setLoading] = useState(false);
-  const [isRecording, setIsRecording] = useState<null | 'name' | 'phone'>(null);
+  const [isRecording, setIsRecording] = useState<null | 'name' | 'phone' | 'age'>(null);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
   const recognitionRef = useRef<any>(null);
@@ -47,6 +48,10 @@ export default function SignUpComponent() {
   const handleSendOtp = async () => {
     if (!name.trim()) {
         toast({ title: t('common.error'), description: t('signup.errorName'), variant: "destructive" });
+        return;
+    }
+    if (!/^\d{1,3}$/.test(age) || parseInt(age, 10) <= 0) {
+        toast({ title: t('common.error'), description: t('signup.errorAge'), variant: "destructive" });
         return;
     }
     if (!/^\d{10}$/.test(phone)) {
@@ -102,11 +107,11 @@ export default function SignUpComponent() {
     setLoading(true);
     try {
         await confirmationResult.confirm(otp);
-        // After confirmation, the user is signed in. Now update their profile.
         const auth = getFirebaseAuth()!;
         const currentUser = auth.currentUser;
         if (currentUser) {
             await updateProfile(currentUser, { displayName: name });
+            localStorage.setItem(`user_age_${currentUser.uid}`, age);
             toast({ title: t('common.success'), description: t('signup.success') });
             router.push('/');
         } else {
@@ -131,7 +136,7 @@ export default function SignUpComponent() {
     setIsRecording(null);
   };
 
-  const handleMicClick = (field: 'name' | 'phone') => {
+  const handleMicClick = (field: 'name' | 'phone' | 'age') => {
      if (isRecording) {
       stopRecognition();
       return;
@@ -150,7 +155,8 @@ export default function SignUpComponent() {
 
     recognitionRef.current.onstart = () => {
       setIsRecording(field);
-      const toastDescription = t('signup.speakNow').replace('{field}', field === 'name' ? t('signup.nameLabel') : t('signup.phoneLabel'));
+      const fieldName = t(`signup.${field}Label`);
+      const toastDescription = t('signup.speakNow').replace('{field}', fieldName);
       toast({ title: t('common.listening'), description: toastDescription});
     };
 
@@ -165,6 +171,13 @@ export default function SignUpComponent() {
             stopRecognition();
         } else {
             toast({ title: t('common.error'), description: t('signup.errorPhone'), variant: 'destructive' });
+        }
+      } else if (field === 'age') {
+        const num = parseInt(transcript.replace(/\s+/g, ''), 10);
+        if (!isNaN(num) && num > 0) {
+            setAge(String(num));
+        } else {
+            toast({ title: t('common.error'), description: t('signup.errorAge'), variant: 'destructive' });
         }
       } else {
         setName(transcript);
@@ -207,6 +220,15 @@ export default function SignUpComponent() {
                 </div>
               </div>
               <div className="space-y-2">
+                <Label htmlFor="age" className="flex items-center gap-2"><Calendar className="w-4 h-4" /> {t('signup.ageLabel')}</Label>
+                <div className="flex items-center gap-2">
+                    <Input id="age" type="number" placeholder={t('signup.agePlaceholder')} value={age} onChange={(e) => setAge(e.target.value.replace(/\D/g, ''))} disabled={loading} />
+                    <Button variant={isRecording === 'age' ? 'destructive' : 'outline'} size="icon" onClick={() => handleMicClick('age')}>
+                        <Mic />
+                    </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="phone" className="flex items-center gap-2"><Phone className="w-4 h-4" /> {t('signup.phoneLabel')}</Label>
                 <div className="flex items-center gap-2">
                     <div className="flex items-center border rounded-md w-full">
@@ -219,7 +241,7 @@ export default function SignUpComponent() {
                 </div>
                 <p className="text-xs text-muted-foreground">{t('signup.phoneHint')}</p>
               </div>
-              <Button onClick={handleSendOtp} disabled={loading || !phone || !name} className="w-full">
+              <Button onClick={handleSendOtp} disabled={loading || !phone || !name || !age} className="w-full">
                 {loading ? <Loader2 className="animate-spin" /> : t('signup.sendOtpButton')}
               </Button>
             </>

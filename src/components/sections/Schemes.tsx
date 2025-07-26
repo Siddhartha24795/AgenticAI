@@ -3,16 +3,18 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { getSchemeInformation } from '@/ai/flows/get-scheme-information';
+import { getSchemeInformation, type GetSchemeInformationOutput } from '@/ai/flows/get-scheme-information';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Mic, Send, Play, StopCircle, MapPin } from 'lucide-react';
+import { Loader2, Mic, Send, Play, StopCircle, MapPin, Search } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '../ui/skeleton';
 import { useLanguage } from '@/hooks/use-language';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { useAuth } from '@/hooks/use-auth';
+import { ScrollArea } from '../ui/scroll-area';
 
 const DUMMY_STATES = ["Karnataka", "Maharashtra", "Tamil Nadu", "Uttar Pradesh"];
 const DUMMY_DISTRICTS: Record<string, string[]> = {
@@ -26,22 +28,19 @@ const GOVERNMENT_SCHEME_DOCS = [
     {
         title: "Pradhan Mantri Krishi Sinchai Yojana (PMKSY) - Drip Irrigation",
         content: `The Pradhan Mantri Krishi Sinchai Yojana (PMKSY) aims to expand cultivated area under assured irrigation, improve on-farm water use efficiency to reduce wastage of water, enhance the adoption of precision irrigation (Drip and Sprinkler), recharge aquifers and introduce sustainable water conservation practices.
-        Eligibility: All farmers are eligible. Priority is given to small and marginal farmers.
-        Benefits: Financial assistance for installation of drip and sprinkler irrigation systems.
+        Eligibility: All farmers are eligible. Priority is given to small and marginal farmers. Minimum age is 18.
         Application Link: https://pmksy.gov.in/`
     },
     {
         title: "Soil Health Card Scheme",
         content: `The Soil Health Card (SHC) scheme is promoted by the Department of Agriculture & Farmers Welfare, Ministry of Agriculture & Farmers Welfare. It aims at promoting Integrated Nutrient Management (INM) through judicious use of chemicals and organic fertilizers including bio-fertilizers and also soil test based balanced use of fertilizers.
-        Eligibility: All farmers with agricultural land.
-        Benefits: Provides a detailed report on soil nutrient status and recommendations for fertilizer use.
+        Eligibility: All farmers with agricultural land. No age limit.
         Application Link: https://soilhealth.dac.gov.in/`
     },
     {
         title: "Kisan Credit Card (KCC) Scheme",
         content: `The Kisan Credit Card (KCC) scheme provides adequate and timely credit support from the banking system to the farmers for their cultivation needs. This includes short term credit for crop production, post-harvest expenses, produce marketing loan, consumption requirements of farmer household, working capital for maintenance of farm assets and activities allied to agriculture, and investment credit for agriculture and allied activities.
-        Eligibility: Farmers - individual/joint cultivators, tenant farmers, oral lessees & sharecroppers, SHGs/Joint Liability Groups of farmers.
-        Benefits: Access to credit at low interest rates.
+        Eligibility: Farmers - individual/joint cultivators aged 18-75, tenant farmers, oral lessees & sharecroppers, SHGs/Joint Liability Groups of farmers.
         Application Link: https://www.sbi.co.in/web/agri-rural/agriculture-banking/crop-loan/kisan-credit-card`
     }
 ];
@@ -55,10 +54,11 @@ function cleanTextForSpeech(text: string): string {
 }
 
 export default function SchemesComponent() {
+  const { user } = useAuth();
   const [query, setQuery] = useState('');
   const [state, setState] = useState('');
   const [district, setDistrict] = useState('');
-  const [result, setResult] = useState<string | null>(null);
+  const [result, setResult] = useState<GetSchemeInformationOutput | null>(null);
   const [audioResponseUri, setAudioResponseUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -67,14 +67,18 @@ export default function SchemesComponent() {
   const recognitionRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { languageCode, languagePrompt, t } = useLanguage();
+  const [age, setAge] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate fetching and setting current location on mount
+    if (user?.uid) {
+        const userAge = localStorage.getItem(`user_age_${user.uid}`);
+        if(userAge) setAge(userAge);
+    }
     const simulatedState = "Karnataka";
     const simulatedDistrict = "Bengaluru Urban";
     setState(simulatedState);
     setDistrict(simulatedDistrict);
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -103,15 +107,15 @@ export default function SchemesComponent() {
             language: languagePrompt,
             state: state,
             district: district,
+            age: age ? parseInt(age, 10) : undefined,
         };
 
         const searchPromise = getSchemeInformation(searchInput);
         
         const searchResult = await searchPromise;
-        const schemeInformation = searchResult.schemeInformation;
-        setResult(schemeInformation);
+        setResult(searchResult);
         
-        const textForSpeech = cleanTextForSpeech(schemeInformation);
+        const textForSpeech = cleanTextForSpeech(searchResult.schemeInformation + ' ' + (searchResult.otherRelevantSchemes || ''));
         const speechPromise = textToSpeech({ text: textForSpeech });
         
         toast({ title: t('common.success'), description: t('schemes.successDescription') });
@@ -121,7 +125,7 @@ export default function SchemesComponent() {
 
     } catch (error) {
       console.error("Error getting scheme info:", error);
-      setResult(`Error: ${(error as Error).message}. Please try again.`);
+      setResult({ schemeInformation: `Error: ${(error as Error).message}. Please try again.` });
       toast({ title: t('common.searchFailed'), description: (error as Error).message, variant: "destructive" });
     } finally {
       setLoading(false);
@@ -196,87 +200,114 @@ export default function SchemesComponent() {
   };
 
   return (
-    <Card className="max-w-3xl mx-auto">
-      <CardHeader>
-        <CardTitle className="font-headline text-2xl text-primary">{t('schemes.title')}</CardTitle>
-        <CardDescription>{t('schemes.description')}</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             <div className="space-y-2">
-                <Label className="font-semibold flex items-center gap-2"><MapPin/> {t('admin.notify.byState')}</Label>
-                <Select value={state} onValueChange={(val) => { setState(val); setDistrict(''); }} disabled={loading}>
-                    <SelectTrigger>
-                        <SelectValue placeholder={t('admin.notify.selectState')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {DUMMY_STATES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-            </div>
-             <div className="space-y-2">
-                <Label className="font-semibold flex items-center gap-2"><MapPin/> {t('admin.notify.byDistrict')}</Label>
-                <Select value={district} onValueChange={setDistrict} disabled={loading || !state}>
-                    <SelectTrigger>
-                        <SelectValue placeholder={t('admin.notify.selectDistrict')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {(DUMMY_DISTRICTS[state] || []).map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-            </div>
-        </div>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <div className="lg:col-span-2 space-y-6">
+            <Card>
+            <CardHeader>
+                <CardTitle className="font-headline text-2xl text-primary">{t('schemes.title')}</CardTitle>
+                <CardDescription>{t('schemes.description')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label className="font-semibold flex items-center gap-2"><MapPin/> {t('admin.notify.byState')}</Label>
+                        <Select value={state} onValueChange={(val) => { setState(val); setDistrict(''); }} disabled={loading}>
+                            <SelectTrigger>
+                                <SelectValue placeholder={t('admin.notify.selectState')} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {DUMMY_STATES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label className="font-semibold flex items-center gap-2"><MapPin/> {t('admin.notify.byDistrict')}</Label>
+                        <Select value={district} onValueChange={setDistrict} disabled={loading || !state}>
+                            <SelectTrigger>
+                                <SelectValue placeholder={t('admin.notify.selectDistrict')} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {(DUMMY_DISTRICTS[state] || []).map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
 
-        <div className="flex items-center space-x-2">
-            <Textarea
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={t('schemes.queryPlaceholder')}
-              className="min-h-[100px] flex-grow"
-              disabled={loading}
-            />
-             <Button onClick={handleTextSubmit} disabled={!query || loading} size="icon" aria-label={t('schemes.textQueryAria')}>
-                {loading ? <Loader2 className="animate-spin" /> : <Send />}
-              </Button>
-              <Button 
-                onClick={handleMicClick}
-                disabled={loading}
-                size="icon"
-                variant={isRecording ? 'destructive' : 'outline'}
-                aria-label={t('schemes.audioQueryAria')}
-              >
-                {isRecording ? <Loader2 className="animate-pulse" /> : <Mic />}
-              </Button>
-        </div>
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Textarea
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder={t('schemes.queryPlaceholder')}
+                    className="min-h-[60px] pl-10 pr-20"
+                    disabled={loading}
+                    />
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                        <Button onClick={handleTextSubmit} disabled={!query || loading} size="icon" aria-label={t('schemes.textQueryAria')}>
+                            {loading ? <Loader2 className="animate-spin" /> : <Send />}
+                        </Button>
+                        <Button 
+                            onClick={handleMicClick}
+                            disabled={loading}
+                            size="icon"
+                            variant={isRecording ? 'destructive' : 'outline'}
+                            aria-label={t('schemes.audioQueryAria')}
+                        >
+                            {isRecording ? <Loader2 className="animate-pulse" /> : <Mic />}
+                        </Button>
+                    </div>
+                </div>
+            </CardContent>
+            </Card>
 
-        {(loading || result) && (
-          <div className="mt-6 p-4 bg-accent/20 border rounded-lg">
-            <div className="flex justify-between items-center mb-2">
-                <h3 className="text-lg font-headline font-semibold text-primary">{t('schemes.resultTitle')}</h3>
-                {audioResponseUri && !loading && (
-                    <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handlePlayPause}
-                    >
-                    {isPlaying ? <StopCircle className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
-                    {isPlaying ? t('common.stopAudio') : t('common.playAudio')}
-                    </Button>
+            {(loading || result?.schemeInformation) && (
+            <Card>
+                <CardHeader>
+                    <div className="flex justify-between items-center">
+                        <CardTitle className="font-headline text-xl text-primary">{t('schemes.resultTitle')}</CardTitle>
+                        {audioResponseUri && !loading && (
+                            <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handlePlayPause}
+                            >
+                            {isPlaying ? <StopCircle className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
+                            {isPlaying ? t('common.stopAudio') : t('common.playAudio')}
+                            </Button>
+                        )}
+                    </div>
+                </CardHeader>
+                <CardContent>
+                {loading && !result && <Skeleton className="h-40 w-full" />}
+                {result?.schemeInformation && (
+                    <div className="text-foreground whitespace-pre-wrap prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: result.schemeInformation.replace(/\n/g, '<br />').replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">$1</a>')}}></div>
                 )}
-            </div>
-             {loading && !result && <Skeleton className="h-20 w-full" />}
-            {result && (
-                <div className="text-foreground whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: result.replace(/\n/g, '<br />').replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">$1</a>')}}></div>
+                {audioResponseUri && (
+                    <audio ref={audioRef} src={audioResponseUri} className="hidden" />
+                )}
+                </CardContent>
+            </Card>
             )}
-             {audioResponseUri && (
-                <audio ref={audioRef} src={audioResponseUri} className="hidden" />
-            )}
-            <p className="mt-4 text-xs text-muted-foreground">
-              <strong>{t('common.note')}:</strong> {t('schemes.predefinedDocsNote')}
-            </p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+        </div>
+        
+        <div className="lg:col-span-1">
+             <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline text-xl text-primary">{t('schemes.otherSchemesTitle')}</CardTitle>
+                    <CardDescription>{t('schemes.otherSchemesDescription')}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ScrollArea className="h-[400px] pr-4">
+                        {loading && !result && <Skeleton className="h-40 w-full" />}
+                        {result?.otherRelevantSchemes ? (
+                             <div className="text-foreground whitespace-pre-wrap prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: result.otherRelevantSchemes.replace(/\n/g, '<br />')}}></div>
+                        ): (
+                            <p className="text-muted-foreground text-center pt-10">{t('schemes.noOtherSchemes')}</p>
+                        )}
+                    </ScrollArea>
+                </CardContent>
+            </Card>
+        </div>
+    </div>
   );
 }
