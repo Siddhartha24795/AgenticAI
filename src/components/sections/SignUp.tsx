@@ -27,17 +27,16 @@ export default function SignUpComponent() {
   const [isRecording, setIsRecording] = useState<null | 'name' | 'phone'>(null);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
-  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
   const recognitionRef = useRef<any>(null);
   const speechTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
 
   useEffect(() => {
     const auth = getFirebaseAuth();
-    if (auth && !recaptchaVerifierRef.current) {
+    if (auth && !(window as any).recaptchaVerifierInstance) {
         const recaptchaContainer = document.getElementById('recaptcha-container');
         if (recaptchaContainer) {
-            recaptchaVerifierRef.current = setupRecaptcha('recaptcha-container', {
+            setupRecaptcha('recaptcha-container', {
                 'size': 'invisible',
                 'callback': () => {},
             });
@@ -47,16 +46,16 @@ export default function SignUpComponent() {
 
   const handleSendOtp = async () => {
     if (!name.trim()) {
-        toast({ title: "Error", description: "Please enter your name.", variant: "destructive" });
+        toast({ title: t('common.error'), description: t('signup.errorName'), variant: "destructive" });
         return;
     }
     if (!/^\d{10}$/.test(phone)) {
-        toast({ title: "Error", description: "Please enter a valid 10-digit phone number.", variant: "destructive" });
+        toast({ title: t('common.error'), description: t('signup.errorPhone'), variant: "destructive" });
         return;
     }
-    const verifier = recaptchaVerifierRef.current;
+    const verifier = (window as any).recaptchaVerifierInstance as RecaptchaVerifier;
     if (!verifier) {
-        toast({ title: "Error", description: "reCAPTCHA not initialized. Please refresh the page.", variant: "destructive" });
+        toast({ title: t('common.error'), description: t('signup.errorRecaptcha'), variant: "destructive" });
         return;
     }
 
@@ -66,21 +65,19 @@ export default function SignUpComponent() {
         const phoneNumber = `+91${phone}`;
         const result = await signInWithPhoneNumber(auth, phoneNumber, verifier);
         setConfirmationResult(result);
-        toast({ title: "OTP Sent", description: `An OTP has been sent to ${phoneNumber}.` });
+        toast({ title: t('signup.otpSentTitle'), description: t('signup.otpSentDesc', { phone: phoneNumber }) });
     } catch (e) {
         const error = e as AuthError;
         console.error("Error sending OTP:", error);
-        let description = "An unknown error occurred while sending the OTP.";
+        let description = t('signup.errorOtpGeneric');
         if (error.code === 'auth/operation-not-allowed') {
-            description = "Phone number sign-in is not enabled for this Firebase project. Please enable it in the Firebase console under Authentication > Sign-in method.";
+            description = t('signup.errorOtpOperationNotAllowed');
         } else if (error.code === 'auth/invalid-phone-number') {
-            description = "The phone number is not valid. Please enter a 10-digit number.";
+            description = t('signup.errorPhone');
         } else if (error.code === 'auth/billing-not-enabled') {
-            description = "The Firebase project's free quota for phone authentication has been exceeded. Please enable billing for this project in the Google Cloud Console to continue.";
-        } else {
-            description = error.message;
+            description = t('signup.errorBillingNotEnabled');
         }
-        toast({ title: "Failed to Send OTP", description, variant: "destructive", duration: 10000 });
+        toast({ title: t('signup.errorOtpFailed'), description, variant: "destructive", duration: 10000 });
     } finally {
         setLoading(false);
     }
@@ -88,11 +85,11 @@ export default function SignUpComponent() {
 
   const handleVerifyOtp = async () => {
     if (!otp || !confirmationResult) {
-        toast({ title: "Error", description: "Please enter the OTP.", variant: "destructive" });
+        toast({ title: t('common.error'), description: t('signup.errorOtp'), variant: "destructive" });
         return;
     }
     if (!name.trim()) {
-        toast({ title: "Error", description: "Please enter your name.", variant: "destructive" });
+        toast({ title: t('common.error'), description: t('signup.errorName'), variant: "destructive" });
         return;
     }
     setLoading(true);
@@ -100,11 +97,11 @@ export default function SignUpComponent() {
         const result = await confirmationResult.confirm(otp);
         const user = result.user;
         await updateProfile(user, { displayName: name });
-        toast({ title: "Success!", description: "You have been successfully signed up." });
+        toast({ title: t('common.success'), description: t('signup.success') });
         router.push('/');
     } catch (error) {
         console.error("Error verifying OTP:", error);
-        toast({ title: "Invalid OTP", description: "The OTP you entered is incorrect. Please try again.", variant: "destructive" });
+        toast({ title: t('signup.errorInvalidOtp'), description: t('signup.errorInvalidOtpDesc'), variant: "destructive" });
     } finally {
         setLoading(false);
     }
@@ -140,7 +137,7 @@ export default function SignUpComponent() {
 
     recognitionRef.current.onstart = () => {
       setIsRecording(field);
-      toast({ title: t('common.listening'), description: `Please speak your ${field}.`});
+      toast({ title: t('common.listening'), description: t('signup.speakNow', { field }) });
     };
 
     recognitionRef.current.onresult = (event: any) => {
@@ -158,7 +155,7 @@ export default function SignUpComponent() {
         if (numericTranscript.length >= 10) {
             setPhone(numericTranscript.substring(0, 10));
             stopRecognition();
-            toast({ title: "Success", description: "10-digit number captured."});
+            toast({ title: t('common.success'), description: t('signup.phoneCaptured')});
         }
       }
       
@@ -190,49 +187,49 @@ export default function SignUpComponent() {
       <div id="recaptcha-container" />
       <Card className="max-w-md mx-auto">
         <CardHeader>
-          <CardTitle className="font-headline text-2xl text-primary">Create an Account</CardTitle>
-          <CardDescription>Sign up using your mobile number to get started.</CardDescription>
+          <CardTitle className="font-headline text-2xl text-primary">{t('signup.title')}</CardTitle>
+          <CardDescription>{t('signup.description')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {!confirmationResult ? (
             <>
               <div className="space-y-2">
-                <Label htmlFor="name" className="flex items-center gap-2"><User className="w-4 h-4" /> Your Name</Label>
+                <Label htmlFor="name" className="flex items-center gap-2"><User className="w-4 h-4" /> {t('signup.nameLabel')}</Label>
                 <div className="flex items-center gap-2">
-                    <Input id="name" type="text" placeholder="Siddhartha Mishra" value={name} onChange={(e) => setName(e.target.value)} disabled={loading} />
+                    <Input id="name" type="text" placeholder={t('signup.namePlaceholder')} value={name} onChange={(e) => setName(e.target.value)} disabled={loading} />
                     <Button variant={isRecording === 'name' ? 'destructive' : 'outline'} size="icon" onClick={() => handleMicClick('name')}>
                         <Mic />
                     </Button>
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone" className="flex items-center gap-2"><Phone className="w-4 h-4" /> Mobile Number</Label>
+                <Label htmlFor="phone" className="flex items-center gap-2"><Phone className="w-4 h-4" /> {t('signup.phoneLabel')}</Label>
                 <div className="flex items-center gap-2">
                     <div className="flex items-center border rounded-md w-full">
                         <span className="text-sm pl-3 pr-2 text-muted-foreground">+91</span>
-                        <Input id="phone" type="tel" placeholder="xxxxxxxxxx" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))} disabled={loading} className="border-l-0 rounded-l-none" maxLength={10}/>
+                        <Input id="phone" type="tel" placeholder={t('signup.phonePlaceholder')} value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))} disabled={loading} className="border-l-0 rounded-l-none" maxLength={10}/>
                     </div>
                      <Button variant={isRecording === 'phone' ? 'destructive' : 'outline'} size="icon" onClick={() => handleMicClick('phone')}>
                         <Mic />
                     </Button>
                 </div>
-                <p className="text-xs text-muted-foreground">Enter your 10-digit mobile number.</p>
+                <p className="text-xs text-muted-foreground">{t('signup.phoneHint')}</p>
               </div>
               <Button onClick={handleSendOtp} disabled={loading || !phone || !name} className="w-full">
-                {loading ? <Loader2 className="animate-spin" /> : "Send OTP"}
+                {loading ? <Loader2 className="animate-spin" /> : t('signup.sendOtpButton')}
               </Button>
             </>
           ) : (
             <>
               <div className="space-y-2">
-                <Label htmlFor="otp" className="flex items-center gap-2"><Lock className="w-4 h-4" /> Verification Code</Label>
-                <Input id="otp" type="text" placeholder="Enter 6-digit OTP" value={otp} onChange={(e) => setOtp(e.target.value)} disabled={loading} maxLength={6} />
+                <Label htmlFor="otp" className="flex items-center gap-2"><Lock className="w-4 h-4" /> {t('signup.otpLabel')}</Label>
+                <Input id="otp" type="text" placeholder={t('signup.otpPlaceholder')} value={otp} onChange={(e) => setOtp(e.target.value)} disabled={loading} maxLength={6} />
               </div>
               <Button onClick={handleVerifyOtp} disabled={loading || !otp} className="w-full">
-                {loading ? <Loader2 className="animate-spin" /> : "Verify & Sign Up"}
+                {loading ? <Loader2 className="animate-spin" /> : t('signup.verifyButton')}
               </Button>
               <Button variant="link" onClick={() => setConfirmationResult(null)} className="w-full">
-                Change phone number
+                {t('signup.changePhoneButton')}
               </Button>
             </>
           )}
