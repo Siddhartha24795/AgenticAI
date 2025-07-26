@@ -4,7 +4,7 @@ const API_RESOURCE_ID = '9ef84268-d588-465a-a308-a864a43d0070';
 const BASE_URL = 'https://api.data.gov.in/resource/';
 
 export async function getMarketData(location: string, limit: number = 10) {
-  const apiKey = process.env.NEXT_PUBLIC_DATAGOVIN_API_KEY;
+  const apiKey = process.env.DATAGOVIN_API_KEY;
   if (!apiKey) {
     throw new Error('data.gov.in API key is not configured.');
   }
