@@ -65,7 +65,7 @@ export default function SignUpComponent() {
         const phoneNumber = `+91${phone}`;
         const result = await signInWithPhoneNumber(auth, phoneNumber, verifier);
         setConfirmationResult(result);
-        toast({ title: t('signup.otpSentTitle'), description: t('signup.otpSentDesc', { phone: phoneNumber }) });
+        toast({ title: t('signup.otpSentTitle'), description: t('signup.otpSentDesc').replace('{phone}', phoneNumber) });
     } catch (e) {
         const error = e as AuthError;
         console.error("Error sending OTP:", error);
@@ -80,6 +80,7 @@ export default function SignUpComponent() {
             description = t('signup.errorCaptchaCheckFailed');
         }
         toast({ title: t('signup.errorOtpFailed'), description, variant: "destructive", duration: 15000 });
+        setConfirmationResult(null);
     } finally {
         setLoading(false);
     }
@@ -139,7 +140,8 @@ export default function SignUpComponent() {
 
     recognitionRef.current.onstart = () => {
       setIsRecording(field);
-      toast({ title: t('common.listening'), description: t('signup.speakNow', { field: t(`signup.${field}Label`) }) });
+      const fieldLabel = t(`signup.${field}Label`);
+      toast({ title: t('common.listening'), description: t('signup.speakNow').replace('{field}', fieldLabel) });
     };
 
     recognitionRef.current.onresult = (event: any) => {
