@@ -14,7 +14,7 @@ import {z} from 'genkit';
 
 const GetMarketInsightsInputSchema = z.object({
   cropQuery: z.string().describe('The farmer\'s question about a specific crop.'),
-  marketData: z.string().describe('JSON string market data with crop prices. The data is in a `records` array.'),
+  marketData: z.string().describe('JSON string market data with crop prices. The data is in a `records` array and may have an `isDummyData` flag.'),
   language: z.string().describe("The language for the response (e.g., 'English', 'Kannada', 'Hindi')."),
 });
 export type GetMarketInsightsInput = z.infer<typeof GetMarketInsightsInputSchema>;
@@ -32,11 +32,13 @@ const prompt = ai.definePrompt({
   name: 'marketInsightsPrompt',
   input: {schema: GetMarketInsightsInputSchema},
   output: {schema: GetMarketInsightsOutputSchema},
-  prompt: `You are an agricultural market analyst. A farmer asked: "{{cropQuery}}". I have fetched the following real-time market data from various mandis: {{{marketData}}}.
+  prompt: `You are an agricultural market analyst. A farmer asked: "{{cropQuery}}". I have fetched the following market data from various mandis: {{{marketData}}}.
 
 You must respond in a JSON format. The 'marketSummary' field in the JSON should contain your analysis.
 
-Please analyze the 'records' array in this data and provide a simple, actionable summary for the farmer in clear, easy-to-understand {{language}}. Focus on the price of the requested commodity. If the specific commodity isn't in the data, analyze the general market trends based on the available data. 
+First, check if the provided data has a field 'isDummyData' set to true. If it does, you MUST start your response by stating in {{language}} that you were unable to fetch live data and are providing default prices.
+
+Next, analyze the 'records' array in this data and provide a simple, actionable summary for the farmer in clear, easy-to-understand {{language}}. Focus on the price of the requested commodity. If the specific commodity isn't in the data, analyze the general market trends based on the available data. 
 
 If the 'records' array is empty, you must state that the feature is not configured correctly because the API for market data returned no information.
 

@@ -1,11 +1,22 @@
 
 'use server';
 
+const DUMMY_MARKET_DATA = {
+  isDummyData: true,
+  records: [
+    { state: 'Karnataka', district: 'Bengaluru', market: 'KR Market', commodity: 'Tomato', modal_price: '25' },
+    { state: 'Karnataka', district: 'Bengaluru', market: 'KR Market', commodity: 'Onion', modal_price: '30' },
+    { state: 'Karnataka', district: 'Bengaluru', market: 'KR Market', commodity: 'Potato', modal_price: '20' },
+    { state: 'Maharashtra', district: 'Pune', market: 'Pune Market', commodity: 'Carrot', modal_price: '40' },
+    { state: 'Maharashtra', district: 'Pune', market: 'Pune Market', commodity: 'Cabbage', modal_price: '15' },
+  ],
+};
+
 export async function getMarketData() {
   const apiUrl = process.env.NEXT_PUBLIC_MANDI_API_URL;
   if (!apiUrl) {
-    console.warn('The Mandi API URL is not configured on the server. Please add NEXT_PUBLIC_MANDI_API_URL to your .env file. Returning empty data.');
-    return { records: [] };
+    console.warn('The Mandi API URL is not configured. Returning dummy data.');
+    return DUMMY_MARKET_DATA;
   }
   
   try {
@@ -21,8 +32,8 @@ export async function getMarketData() {
     if (!response.ok) {
       const errorBody = await response.text();
       console.error('API Error Response:', errorBody);
-      // Return empty records instead of throwing an error
-      return { records: [] };
+      console.log('Live API failed. Using dummy market data as a fallback.');
+      return DUMMY_MARKET_DATA;
     }
 
     const data = await response.json();
@@ -30,7 +41,7 @@ export async function getMarketData() {
     return { records: data };
   } catch (error) {
     console.error('Error fetching from Mandi API:', error);
-    // Return empty records on any failure to prevent crashing.
-    return { records: [] };
+    console.log('Live API failed. Using dummy market data as a fallback.');
+    return DUMMY_MARKET_DATA;
   }
 }
