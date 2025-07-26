@@ -139,9 +139,9 @@ export default function DiagnoseComponent() {
       }
       
       const analysisPromise = analyzePlantImage(input);
-      const textResultPromise = analysisPromise.then(res => res.diagnosis);
       
-      const [diagnosisText] = await Promise.all([textResultPromise]);
+      const [analysisResult] = await Promise.all([analysisPromise]);
+      const diagnosisText = analysisResult.diagnosis;
       setDiagnosisResult(diagnosisText);
 
       const speechPromise = textToSpeech({ text: diagnosisText });
@@ -271,62 +271,66 @@ export default function DiagnoseComponent() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-headline text-2xl text-primary">{t('diagnose.title')}</CardTitle>
-          <CardDescription>{t('diagnose.description')}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-            <div
-                className="border-2 border-dashed border-muted-foreground/50 rounded-lg p-8 text-center cursor-pointer hover:bg-accent/20 transition-colors"
-                onClick={() => fileInputRef.current?.click()}
-            >
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  ref={fileInputRef}
-                  className="hidden"
-                />
-                {imagePreview ? (
-                    <div className="relative w-full h-48">
-                        <Image src={imagePreview} alt={t('diagnose.plantPreviewAlt')} layout="fill" objectFit="contain" className="rounded-md" />
-                    </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center space-y-2 text-muted-foreground">
-                    <Upload className="w-12 h-12" />
-                    <p>{t('diagnose.uploadPrompt')}</p>
-                    <p className="text-xs">{t('diagnose.uploadConstraints')}</p>
-                  </div>
-                )}
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Textarea 
-                value={textQuery}
-                onChange={(e) => setTextQuery(e.target.value)}
-                placeholder={t('diagnose.queryPlaceholder')}
-                className="min-h-[60px] flex-grow"
-                disabled={loading}
-              />
-              <Button onClick={handleTextSubmit} disabled={(!imageFile && !textQuery) || loading || !user} size="icon" aria-label={t('diagnose.textQueryAria')}>
-                {loading ? <Loader2 className="animate-spin" /> : <Send />}
-              </Button>
-              <Button 
-                onClick={handleMicClick}
-                disabled={loading || !user}
-                size="icon"
-                variant={isRecording ? 'destructive' : 'outline'}
-                aria-label={t('diagnose.audioQueryAria')}
+      <div className="space-y-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-headline text-2xl text-primary">{t('diagnose.title')}</CardTitle>
+            <CardDescription>{t('diagnose.description')}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+              <div
+                  className="border-2 border-dashed border-muted-foreground/50 rounded-lg p-8 text-center cursor-pointer hover:bg-accent/20 transition-colors"
+                  onClick={() => fileInputRef.current?.click()}
               >
-                {isRecording ? <Loader2 className="animate-pulse" /> : <Mic />}
-              </Button>
-            </div>
-          
-          {(loading || diagnosisResult) && (
-            <div className="mt-6 p-4 bg-accent/20 border rounded-lg">
-                <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-lg font-headline font-semibold text-primary">{t('diagnose.resultTitle')}</h3>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    ref={fileInputRef}
+                    className="hidden"
+                  />
+                  {imagePreview ? (
+                      <div className="relative w-full h-48">
+                          <Image src={imagePreview} alt={t('diagnose.plantPreviewAlt')} layout="fill" objectFit="contain" className="rounded-md" />
+                      </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center space-y-2 text-muted-foreground">
+                      <Upload className="w-12 h-12" />
+                      <p>{t('diagnose.uploadPrompt')}</p>
+                      <p className="text-xs">{t('diagnose.uploadConstraints')}</p>
+                    </div>
+                  )}
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Textarea 
+                  value={textQuery}
+                  onChange={(e) => setTextQuery(e.target.value)}
+                  placeholder={t('diagnose.queryPlaceholder')}
+                  className="min-h-[60px] flex-grow"
+                  disabled={loading}
+                />
+                <Button onClick={handleTextSubmit} disabled={(!imageFile && !textQuery) || loading || !user} size="icon" aria-label={t('diagnose.textQueryAria')}>
+                  {loading ? <Loader2 className="animate-spin" /> : <Send />}
+                </Button>
+                <Button 
+                  onClick={handleMicClick}
+                  disabled={loading || !user}
+                  size="icon"
+                  variant={isRecording ? 'destructive' : 'outline'}
+                  aria-label={t('diagnose.audioQueryAria')}
+                >
+                  {isRecording ? <Loader2 className="animate-pulse" /> : <Mic />}
+                </Button>
+              </div>
+          </CardContent>
+        </Card>
+        
+        {(loading || diagnosisResult) && (
+          <Card>
+            <CardHeader>
+                <div className="flex justify-between items-center">
+                    <CardTitle className="font-headline text-xl text-primary">{t('diagnose.resultTitle')}</CardTitle>
                     {audioResponseUri && !loading && (
                         <Button
                         variant="outline"
@@ -338,17 +342,19 @@ export default function DiagnoseComponent() {
                         </Button>
                     )}
                 </div>
-              {loading && !diagnosisResult && <Skeleton className="h-20 w-full" />}
+            </CardHeader>
+            <CardContent>
+              {loading && !diagnosisResult && <Skeleton className="h-24 w-full" />}
               {diagnosisResult && (
                 <div className="text-sm text-foreground whitespace-pre-wrap">{diagnosisResult}</div>
               )}
                {audioResponseUri && (
                   <audio ref={audioRef} src={audioResponseUri} className="hidden" />
                 )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        )}
+      </div>
       
       <Card>
         <CardHeader>
@@ -359,9 +365,9 @@ export default function DiagnoseComponent() {
           <ScrollArea className="h-[500px] pr-4">
             {historyLoading ? (
               <div className="space-y-4">
-                <Skeleton className="h-20 w-full" />
-                <Skeleton className="h-20 w-full" />
-                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-24 w-full" />
               </div>
             ) : history.length === 0 ? (
               <p className="text-muted-foreground text-center pt-10">{t('diagnose.noHistory')}</p>
@@ -370,13 +376,13 @@ export default function DiagnoseComponent() {
                 {history.map((entry) => (
                   <div key={entry.id} className="p-4 bg-card border rounded-lg shadow-sm flex gap-4 items-start">
                     {entry.imageUrl && (
-                      <Image data-ai-hint="plant disease" src={entry.imageUrl} alt={t('diagnose.diagnosedPlantAlt')} width={64} height={64} className="w-16 h-16 object-cover rounded-md" />
+                      <Image data-ai-hint="plant disease" src={entry.imageUrl} alt={t('diagnose.diagnosedPlantAlt')} width={64} height={64} className="w-16 h-16 object-cover rounded-md flex-shrink-0" />
                     )}
                     <div className="flex-1">
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground font-medium">
                         {entry.timestamp ? new Date(entry.timestamp.toDate()).toLocaleString() : t('common.loadingDate')}
                       </p>
-                      <p className="text-sm text-foreground/80 mt-1 line-clamp-2">
+                      <p className="text-sm text-foreground/90 mt-1 line-clamp-3">
                         {entry.diagnosis}
                       </p>
                     </div>
