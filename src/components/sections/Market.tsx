@@ -7,7 +7,7 @@ import { getMarketInsights } from '@/ai/flows/get-market-insights';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Mic, Send, Play, MapPin, StopCircle } from 'lucide-react';
+import { Loader2, Mic, Send, Play, MapPin, StopCircle, LocateFixed } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '../ui/skeleton';
 import { useLanguage } from '@/hooks/use-language';
@@ -41,6 +41,14 @@ export default function MarketComponent() {
     }
   }, [audioResponseUri]);
 
+  const handleSimulateLocation = () => {
+    toast({ title: t('market.fetchingLocation'), description: t('market.fetchingLocationDesc') });
+    setTimeout(() => {
+        setLocation("Bengaluru");
+        toast({ title: t('market.locationSetTitle'), description: t('market.locationSetDesc') });
+    }, 1500);
+  };
+
   const handleAnalyze = async (textQuery: string) => {
     if (!textQuery.trim()) {
       toast({ title: t('common.error'), description: t('market.errorDescription'), variant: "destructive" });
@@ -65,13 +73,18 @@ export default function MarketComponent() {
       };
 
       const analysisPromise = getMarketInsights(insightsInput);
-      const speechPromise = analysisPromise.then(res => textToSpeech({ text: res.marketSummary }));
+      
+      analysisPromise.then(res => {
+        setResult(res.marketSummary);
+        return textToSpeech({ text: res.marketSummary });
+      }).then(speechResult => {
+        setAudioResponseUri(speechResult.audioDataUri);
+      }).catch(err => {
+        console.error("Error during analysis or speech synthesis:", err);
+        toast({ title: t('common.analysisFailed'), description: (err as Error).message, variant: "destructive" });
+      });
 
-      const [analysisResult, speechResult] = await Promise.all([analysisPromise, speechPromise]);
-      
-      setResult(analysisResult.marketSummary);
-      setAudioResponseUri(speechResult.audioDataUri);
-      
+      await analysisPromise;
       toast({ title: t('common.success'), description: t('market.successDescription') });
 
     } catch (error) {
@@ -162,16 +175,22 @@ export default function MarketComponent() {
               <MapPin className="w-5 h-5 text-primary" />
               {t('market.locationTitle')}
             </Label>
-            <Select value={location} onValueChange={setLocation}>
-              <SelectTrigger id="location-select">
-                <SelectValue placeholder={t('market.selectLocationPlaceholder')} />
-              </SelectTrigger>
-              <SelectContent>
-                {CITIES_OF_INDIA.map(city => (
-                  <SelectItem key={city} value={city}>{city}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              <Select value={location} onValueChange={setLocation}>
+                <SelectTrigger id="location-select">
+                  <SelectValue placeholder={t('market.selectLocationPlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {CITIES_OF_INDIA.map(city => (
+                    <SelectItem key={city} value={city}>{city}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button variant="outline" onClick={handleSimulateLocation}>
+                <LocateFixed className="mr-2 h-4 w-4" />
+                {t('market.useMyLocation')}
+              </Button>
+            </div>
         </div>
 
         <div className="flex items-center space-x-2">
@@ -227,5 +246,3 @@ export default function MarketComponent() {
     </Card>
   );
 }
-
-    

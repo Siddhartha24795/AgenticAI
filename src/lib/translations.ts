@@ -2,9 +2,9 @@
 export const translations = {
   layout: {
     title: {
-      en: 'Agrigentic AI',
-      kn: 'ಅಗ್ರಿಜೆಂಟಿಕ್ AI',
-      hi: 'एग्रीजेंटिक AI',
+      en: 'AgriAssist AI',
+      kn: 'ಅಗ್ರಿಅಸಿಸ್ಟ್ AI',
+      hi: 'एग्रीअसिस्ट AI',
     },
     description: {
         en: 'AI-powered assistant for farmers',
@@ -13,12 +13,13 @@ export const translations = {
     }
   },
   header: {
-    title: { en: 'Agrigentic AI', kn: 'ಅಗ್ರಿಜೆಂಟಿಕ್ AI', hi: 'एग्रीजेंटिक AI' },
+    title: { en: 'AgriAssist AI', kn: 'ಅಗ್ರಿಅಸಿಸ್ಟ್ AI', hi: 'एग्रीअसिस्ट AI' },
     home: { en: 'Home', kn: 'ಹೋಮ್', hi: 'होम' },
     diagnose: { en: 'Diagnose', kn: 'ರೋಗನಿರ್ಣಯ', hi: 'निदान' },
     market: { en: 'Market', kn: 'ಮಾರುಕಟ್ಟೆ', hi: 'बाजार' },
     schemes: { en: 'Schemes', kn: 'ಯೋಜನೆಗಳು', hi: 'योजनाएं' },
     notifier: { en: 'Notifier', kn: 'ಸೂಚಕ', hi: 'सूचक' },
+    adminNotifier: { en: 'Admin Notifier', kn: 'ನಿರ್ವಾಹಕ ಸೂಚಕ', hi: 'एडमिन सूचक' },
     changeLanguage: { en: 'Change language', kn: 'ಭಾಷೆ ಬದಲಿಸಿ', hi: 'भाषा बदलें' },
     openMenu: { en: 'Open menu', kn: 'ಮೆನು ತೆರೆಯಿರಿ', hi: 'मेन्यू खोलें' },
     english: { en: 'English', kn: 'English', hi: 'English' },
@@ -65,6 +66,11 @@ export const translations = {
     description: { en: 'Ask about market prices to guide your selling decisions (e.g., "What is the price of tomatoes today?").', kn: 'ನಿಮ್ಮ ಮಾರಾಟದ ನಿರ್ಧಾರಗಳಿಗೆ ಮಾರ್ಗದರ್ಶನ ನೀಡಲು ಮಾರುಕಟ್ಟೆ ಬೆಲೆಗಳ ಬಗ್ಗೆ ಕೇಳಿ (ಉದಾ., "ಇಂದು ಟೊಮೆಟೊ ಬೆಲೆ ಎಷ್ಟು?").', hi: 'अपने बिक्री निर्णयों का मार्गदर्शन करने के लिए बाजार मूल्य के बारे में पूछें (उदाहरण के लिए, "आज टमाटर का मूल्य क्या है?")।' },
     locationTitle: { en: 'Location', kn: 'ಸ್ಥಳ', hi: 'स्थान' },
     selectLocationPlaceholder: { en: 'Select a city', kn: 'ನಗರವನ್ನು ಆಯ್ಕೆಮಾಡಿ', hi: 'एक शहर चुनें' },
+    useMyLocation: { en: 'Use My Location', kn: 'ನನ್ನ ಸ್ಥಳ ಬಳಸಿ', hi: 'मेरा स्थान उपयोग करें' },
+    fetchingLocation: { en: 'Fetching your location...', kn: 'ನಿಮ್ಮ ಸ್ಥಳವನ್ನು ತರಲಾಗುತ್ತಿದೆ...', hi: 'आपका स्थान प्राप्त किया जा रहा है...' },
+    fetchingLocationDesc: { en: 'This is a simulation for demo purposes.', kn: 'ಇದು ಡೆಮೊ ಉದ್ದೇಶಗಳಿಗಾಗಿ ಒಂದು ಸಿಮ್ಯುಲೇಶನ್ ಆಗಿದೆ.', hi: 'यह डेमो उद्देश्यों के लिए एक सिमुलेशन है।' },
+    locationSetTitle: { en: 'Location Set', kn: 'ಸ್ಥಳವನ್ನು ಹೊಂದಿಸಲಾಗಿದೆ', hi: 'स्थान सेट' },
+    locationSetDesc: { en: 'Location has been set to Bengaluru.', kn: 'ಸ್ಥಳವನ್ನು ಬೆಂಗಳೂರಿಗೆ ಹೊಂದಿಸಲಾಗಿದೆ.', hi: 'स्थान बेंगलुरु पर सेट किया गया है।' },
     queryPlaceholder: { en: 'Enter your query here...', kn: 'ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಇಲ್ಲಿ ನಮೂದಿಸಿ...', hi: 'अपना प्रश्न यहाँ दर्ज करें...' },
     textQueryAria: { en: 'Submit text query', kn: 'ಪಠ್ಯ ಪ್ರಶ್ನೆಯನ್ನು ಸಲ್ಲಿಸಿ', hi: 'पाठ्य प्रश्न सबमिट करें' },
     audioQueryAria: { en: 'Submit audio query', kn: 'ಆಡಿಯೋ ಪ್ರಶ್ನೆಯನ್ನು ಸಲ್ಲಿಸಿ', hi: 'ऑडियो प्रश्न सबमिट करें' },
@@ -101,6 +107,25 @@ export const translations = {
     alertSentDesc: { en: '{type} notification has been broadcast to nearby authorities and farmers.', kn: '{type} ಅಧಿಸೂಚನೆಯನ್ನು ಹತ್ತಿರದ ಅಧಿಕಾರಿಗಳು ಮತ್ತು ರೈತರಿಗೆ ಪ್ರಸಾರ ಮಾಡಲಾಗಿದೆ.', hi: '{type} अधिसूचना पास के अधिकारियों और किसानों को प्रसारित की गई है।' },
     defaultMessage: { en: 'Immediate assistance required due to {type}.', kn: '{type} ಕಾರಣದಿಂದಾಗಿ ತಕ್ಷಣದ ಸಹಾಯದ ಅಗತ್ಯವಿದೆ.', hi: '{type} के कारण तत्काल सहायता की आवश्यकता है।' },
   },
+  admin: {
+    notify: {
+        title: { en: 'Admin Push Notifier', kn: 'ನಿರ್ವಾಹಕ ಪುಶ್ ಸೂಚಕ', hi: 'एडमिन पुश सूचक' },
+        description: { en: 'Send push notifications to users based on location. (This is a UI simulation).', kn: 'ಸ್ಥಳವನ್ನು ಆಧರಿಸಿ ಬಳಕೆದಾರರಿಗೆ ಪುಶ್ ಅಧಿಸೂಚನೆಗಳನ್ನು ಕಳುಹಿಸಿ. (ಇದು ಯುಐ ಸಿಮ್ಯುಲೇಶನ್ ಆಗಿದೆ).', hi: 'स्थान के आधार पर उपयोगकर्ताओं को पुश सूचनाएं भेजें। (यह एक यूआई सिमुलेशन है)।' },
+        targetAudience: { en: 'Target Audience', kn: 'ಗುರಿ ಪ್ರೇಕ್ಷಕರು', hi: 'लक्षित दर्शक' },
+        allUsers: { en: 'All Users', kn: 'ಎಲ್ಲಾ ಬಳಕೆದಾರರು', hi: 'सभी उपयोगकर्ता' },
+        byState: { en: 'By State', kn: 'ರಾಜ್ಯವಾರು', hi: 'राज्य द्वारा' },
+        byDistrict: { en: 'By District', kn: 'ಜಿಲ್ಲಾವಾರು', hi: 'जिला द्वारा' },
+        selectState: { en: 'Select a state...', kn: 'ರಾಜ್ಯವನ್ನು ಆಯ್ಕೆಮಾಡಿ...', hi: 'एक राज्य चुनें...' },
+        selectDistrict: { en: 'Select a district...', kn: 'ಜಿಲ್ಲೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ...', hi: 'एक जिला चुनें...' },
+        message: { en: 'Message', kn: 'ಸಂದೇಶ', hi: 'संदेश' },
+        messagePlaceholder: { en: 'Enter your notification message here...', kn: 'ನಿಮ್ಮ ಅಧಿಸೂಚನೆ ಸಂದೇಶವನ್ನು ಇಲ್ಲಿ ನಮೂದಿಸಿ...', hi: 'अपनी अधिसूचना संदेश यहाँ दर्ज करें...' },
+        sendNotification: { en: 'Send Notification', kn: 'ಅಧಿಸೂಚನೆಯನ್ನು ಕಳುಹಿಸಿ', hi: 'अधिसूचना भेजें' },
+        notificationSentTitle: { en: 'Notification Sent (Simulated)', kn: 'ಅಧಿಸೂಚನೆ ಕಳುಹಿಸಲಾಗಿದೆ (ಸಿಮ್ಯುಲೇಟೆಡ್)', hi: 'अधिसूचना भेजी गई (सिम्युलेटेड)' },
+        notificationSentDesc: { en: 'Your message has been sent to the selected audience.', kn: 'ನಿಮ್ಮ ಸಂದೇಶವನ್ನು ಆಯ್ಕೆಮಾಡಿದ ಪ್ರೇಕ್ಷಕರಿಗೆ ಕಳುಹಿಸಲಾಗಿದೆ.', hi: 'आपका संदेश चयनित दर्शकों को भेज दिया गया है।' },
+        selectAudience: { en: "Please select an audience.", kn: "ದಯವಿಟ್ಟು ಪ್ರೇಕ್ಷಕರನ್ನು ಆಯ್ಕೆಮಾಡಿ.", hi: "कृपया एक दर्शक चुनें।" },
+        enterMessage: { en: "Please enter a message.", kn: "ದಯವಿಟ್ಟು ಸಂದೇಶವನ್ನು ನಮೂದಿಸಿ.", hi: "कृपया एक संदेश दर्ज करें।" },
+    }
+  },
   common: {
     error: { en: 'Error', kn: 'ದೋಷ', hi: 'त्रुटि' },
     success: { en: 'Success', kn: 'ಯಶಸ್ಸು', hi: 'सफलता' },
@@ -117,5 +142,3 @@ export const translations = {
     searchFailed: { en: 'Search Failed', kn: 'ಹುಡುಕಾಟ ವಿಫಲವಾಯಿತು', hi: 'खोज विफल रही' },
   }
 };
-
-    

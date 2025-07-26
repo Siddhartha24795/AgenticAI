@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Home, Leaf, LineChart, ShieldCheck, Languages, Menu, BellRing } from 'lucide-react';
+import { Home, Leaf, LineChart, ShieldCheck, Languages, Menu, BellRing, Cog } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import {
   DropdownMenu,
@@ -14,6 +14,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
   DropdownMenuItem,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '../ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -93,6 +94,13 @@ export default function Header() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {renderNavLinks(true)}
+                <DropdownMenuSeparator />
+                 <DropdownMenuItem asChild>
+                    <Link href="/admin/notify" className='flex items-center gap-2 w-full'>
+                      <Cog className="h-5 w-5" />
+                      <span>{t('header.adminNotifier')}</span>
+                    </Link>
+                  </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
@@ -109,6 +117,15 @@ export default function Header() {
                 <span className="sr-only">{t('header.notifier')}</span>
               </Button>
           </Link>
+          
+          {!isMobile && (
+            <Link href="/admin/notify" passHref>
+              <Button variant="outline" size="icon" className="bg-transparent hover:bg-primary-foreground/10 text-white border-white/50 hover:text-white">
+                <Cog className="h-5 w-5" />
+                <span className="sr-only">{t('header.adminNotifier')}</span>
+              </Button>
+            </Link>
+          )}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
