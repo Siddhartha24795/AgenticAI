@@ -1,6 +1,6 @@
 
 import { initializeApp, getApp, getApps, type FirebaseApp } from 'firebase/app';
-import { getAuth, type Auth } from 'firebase/auth';
+import { getAuth, type Auth, RecaptchaVerifier, type RecaptchaParameters } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 
 let app: FirebaseApp | null = null;
@@ -64,8 +64,30 @@ function getFirebaseAppId(): string | null {
     return process.env.NEXT_PUBLIC_FIREBASE_APP_ID || null;
 }
 
+function setupRecaptcha(containerId: string, params?: RecaptchaParameters): RecaptchaVerifier | null {
+    const auth = getFirebaseAuth();
+    if (!auth || typeof window === 'undefined') return null;
+
+    // Check if a verifier for this container already exists
+    if ((window as any).recaptchaVerifiers && (window as any).recaptchaVerifiers[containerId]) {
+        return (window as any).recaptchaVerifiers[containerId];
+    }
+    
+    const verifier = new RecaptchaVerifier(auth, containerId, params);
+
+    // Store verifier to avoid re-creating it
+    if (!(window as any).recaptchaVerifiers) {
+        (window as any).recaptchaVerifiers = {};
+    }
+    (window as any).recaptchaVerifiers[containerId] = verifier;
+
+    return verifier;
+}
+
+
 export { 
     getFirebaseAuth, 
     getFirebaseDb,
-    getFirebaseAppId
+    getFirebaseAppId,
+    setupRecaptcha
 };

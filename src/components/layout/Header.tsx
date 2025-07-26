@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Home, Leaf, LineChart, ShieldCheck, Languages, Menu, BellRing, Cog } from 'lucide-react';
+import { Home, Leaf, LineChart, ShieldCheck, Languages, Menu, BellRing, Cog, UserPlus } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import {
   DropdownMenu,
@@ -18,9 +18,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '../ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function Header() {
   const pathname = usePathname();
+  const { user } = useAuth();
   const { language, setLanguage, t } = useLanguage();
   const isMobile = useIsMobile();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -126,6 +128,16 @@ export default function Header() {
               </Button>
             </Link>
           )}
+
+          {user?.isAnonymous && (
+            <Link href="/signup" passHref>
+              <Button variant="secondary">
+                <UserPlus className="mr-2 h-5 w-5" />
+                Sign Up
+              </Button>
+            </Link>
+          )}
+
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
