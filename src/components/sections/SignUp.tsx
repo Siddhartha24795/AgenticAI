@@ -14,13 +14,17 @@ import { Label } from '@/components/ui/label';
 import { Loader2, Mic, User, Phone, Lock, Calendar } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 
+// Test credentials
+const TEST_PHONE_NUMBER = '7905118695';
+const TEST_OTP = '247956'; // Firebase requires a 6-digit OTP for testing.
+
 export default function SignUpComponent() {
   const router = useRouter();
   const { toast } = useToast();
   const { languageCode, t } = useLanguage();
   
   const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState(TEST_PHONE_NUMBER);
   const [age, setAge] = useState('');
   const [otp, setOtp] = useState('');
   
@@ -54,10 +58,7 @@ export default function SignUpComponent() {
         toast({ title: t('common.error'), description: t('signup.errorAge'), variant: "destructive" });
         return;
     }
-    if (!/^\d{10}$/.test(phone)) {
-        toast({ title: t('common.error'), description: t('signup.errorPhone'), variant: "destructive" });
-        return;
-    }
+
     const verifier = (window as any).recaptchaVerifierInstance as RecaptchaVerifier | undefined;
     if (!verifier) {
         toast({ title: t('common.error'), description: t('signup.errorRecaptcha'), variant: "destructive" });
@@ -68,11 +69,12 @@ export default function SignUpComponent() {
     
     try {
         const auth = getFirebaseAuth()!;
-        const phoneNumber = `+91${phone}`;
+        const phoneNumber = `+91${TEST_PHONE_NUMBER}`; // Use test phone number
         const result = await signInWithPhoneNumber(auth, phoneNumber, verifier);
         setConfirmationResult(result);
         const description = t('signup.otpSentDesc').replace('{phone}', phoneNumber);
         toast({ title: t('signup.otpSentTitle'), description: description });
+        setOtp(TEST_OTP); // Pre-fill with the test OTP
     } catch (e) {
         const error = e as AuthError;
         console.error("Error sending OTP:", error);
@@ -95,7 +97,8 @@ export default function SignUpComponent() {
   };
 
   const handleVerifyOtp = async () => {
-    if (!otp) {
+    const finalOtp = otp || TEST_OTP; // Use entered OTP or fallback to test OTP
+    if (!finalOtp) {
         toast({ title: t('common.error'), description: t('signup.errorOtp'), variant: "destructive" });
         return;
     }
@@ -106,7 +109,7 @@ export default function SignUpComponent() {
     
     setLoading(true);
     try {
-        await confirmationResult.confirm(otp);
+        await confirmationResult.confirm(finalOtp);
         const auth = getFirebaseAuth()!;
         const currentUser = auth.currentUser;
         if (currentUser) {
