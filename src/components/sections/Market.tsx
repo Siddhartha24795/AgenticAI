@@ -64,20 +64,21 @@ export default function MarketComponent() {
       const insightsInput = {
         cropQuery: textQuery,
         location: location,
-        marketData: JSON.stringify(marketData.records),
+        marketData: JSON.stringify(marketData),
         language: languagePrompt,
       };
 
       const analysisPromise = getMarketInsights(insightsInput);
-      const speechPromise = analysisPromise.then(res => {
-          setResult(res.marketSummary);
-          return textToSpeech({ text: res.marketSummary });
-      });
-
-      const [_, speechResult] = await Promise.all([analysisPromise, speechPromise]);
-      setAudioResponseUri(speechResult.audioDataUri);
       
+      const analysisResult = await analysisPromise;
+      setResult(analysisResult.marketSummary);
+
+      const speechPromise = textToSpeech({ text: analysisResult.marketSummary });
+
       toast({ title: t('common.success'), description: t('market.successDescription') });
+
+      const speechResult = await speechPromise;
+      setAudioResponseUri(speechResult.audioDataUri);
 
     } catch (error) {
       console.error("Error getting market analysis:", error);

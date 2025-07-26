@@ -7,8 +7,7 @@ const BASE_URL = 'https://api.data.gov.in/resource/';
 export async function getMarketData(location: string, limit: number = 10) {
   const apiKey = process.env.DATAGOVIN_API_KEY;
   if (!apiKey) {
-    // This case will be handled by the check in Market.tsx, but is good practice to have
-    throw new Error('The data.gov.in API key is not configured on the server.');
+    throw new Error('The data.gov.in API key is not configured on the server. Please add DATAGOVIN_API_KEY to your .env file.');
   }
 
   const url = new URL(`${BASE_URL}${API_RESOURCE_ID}`);
