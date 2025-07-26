@@ -57,7 +57,6 @@ export default function SignUpComponent() {
         const description = t('signup.otpSentDesc').replace('{phone}', `+91${phone}`);
         toast({ title: t('signup.otpSentTitle'), description: description });
         
-        setOtp(TEST_OTP); // Pre-fill with the test OTP
         setLoading(false);
     } else {
         // Here you would put your real OTP sending logic for other numbers
@@ -80,6 +79,10 @@ export default function SignUpComponent() {
     setLoading(true);
     try {
         const auth = getFirebaseAuth()!;
+
+        if (phone === TEST_PHONE_NUMBER && otp !== TEST_OTP) {
+            throw new Error("Invalid OTP for test number.");
+        }
         
         // This part is new: We create a credential object to sign in with.
         const credential = PhoneAuthProvider.credential(simulatedVerificationId, otp);

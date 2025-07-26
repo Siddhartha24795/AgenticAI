@@ -19,6 +19,15 @@ import {
 import { Button } from '../ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/hooks/use-auth';
+import { Avatar, AvatarFallback } from '../ui/avatar';
+
+function getInitials(name: string | null | undefined): string {
+    if (!name) return '';
+    const names = name.split(' ');
+    const initials = names.map(n => n[0]).join('');
+    return initials.length > 2 ? initials.substring(0, 2) : initials;
+}
+
 
 export default function Header() {
   const pathname = usePathname();
@@ -129,13 +138,19 @@ export default function Header() {
             </Link>
           )}
 
-          {user?.isAnonymous && (
+          {user?.isAnonymous ? (
             <Link href="/signup" passHref>
               <Button variant="secondary">
                 Sign Up
               </Button>
             </Link>
-          )}
+          ) : user ? (
+            <Avatar className="h-9 w-9 border-2 border-primary-foreground/50">
+              <AvatarFallback className="bg-secondary text-secondary-foreground font-bold">
+                {getInitials(user.displayName)}
+              </AvatarFallback>
+            </Avatar>
+          ) : null}
 
 
           <DropdownMenu>
