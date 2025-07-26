@@ -11,14 +11,18 @@ export async function getMarketData(location: string, limit: number = 10) {
   }
 
   const url = new URL(`${BASE_URL}${API_RESOURCE_ID}`);
-  url.searchParams.append('api-key', apiKey);
   url.searchParams.append('format', 'json');
   url.searchParams.append('offset', '0');
   url.searchParams.append('limit', String(limit));
   url.searchParams.append('filters[district]', location);
   
   try {
-    const response = await fetch(url.toString());
+    const response = await fetch(url.toString(), {
+      headers: {
+        'Accept': 'application/json',
+        'X-API-Key': apiKey,
+      },
+    });
 
     if (!response.ok) {
       const errorBody = await response.text();
