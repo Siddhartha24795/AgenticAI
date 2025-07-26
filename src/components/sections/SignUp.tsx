@@ -43,8 +43,12 @@ export default function SignUpComponent() {
   }, []);
 
   const handleSendOtp = async () => {
-    if (!phone.trim() || !name.trim()) {
-        toast({ title: "Error", description: "Please enter your name and a valid phone number.", variant: "destructive" });
+    if (!name.trim()) {
+        toast({ title: "Error", description: "Please enter your name.", variant: "destructive" });
+        return;
+    }
+    if (!phone.trim() || !/^\d{10}$/.test(phone)) {
+        toast({ title: "Error", description: "Please enter a valid 10-digit phone number.", variant: "destructive" });
         return;
     }
     const verifier = recaptchaVerifierRef.current;
@@ -56,15 +60,18 @@ export default function SignUpComponent() {
     setLoading(true);
     try {
         const auth = getFirebaseAuth()!;
-        const result = await signInWithPhoneNumber(auth, `+${phone}`, verifier);
+        const phoneNumber = `+91${phone}`;
+        const result = await signInWithPhoneNumber(auth, phoneNumber, verifier);
         setConfirmationResult(result);
-        toast({ title: "OTP Sent", description: `An OTP has been sent to +${phone}.` });
+        toast({ title: "OTP Sent", description: `An OTP has been sent to ${phoneNumber}.` });
     } catch (e) {
         const error = e as AuthError;
         console.error("Error sending OTP:", error);
         let description = "An unknown error occurred while sending the OTP.";
         if (error.code === 'auth/operation-not-allowed') {
             description = "Phone number sign-in is not enabled for this Firebase project. Please enable it in the Firebase console under Authentication > Sign-in method.";
+        } else if (error.code === 'auth/invalid-phone-number') {
+            description = "The phone number is not valid. Please enter a 10-digit number.";
         } else {
             description = error.message;
         }
@@ -122,9 +129,10 @@ export default function SignUpComponent() {
     };
 
     recognitionRef.current.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
+      let transcript = event.results[0][0].transcript;
       if (field === 'name') {
-        setName(transcript);
+        // Remove trailing punctuation and trim whitespace
+        setName(transcript.replace(/[.,!?]$/, '').trim());
       } else if (field === 'phone') {
         setPhone(transcript.replace(/\D/g, ''));
       }
@@ -167,12 +175,15 @@ export default function SignUpComponent() {
               <div className="space-y-2">
                 <Label htmlFor="phone" className="flex items-center gap-2"><Phone className="w-4 h-4" /> Mobile Number</Label>
                 <div className="flex items-center gap-2">
-                    <Input id="phone" type="tel" placeholder="91xxxxxxxxxx" value={phone} onChange={(e) => setPhone(e.target.value)} disabled={loading} />
+                    <div className="flex items-center border rounded-md">
+                        <span className="text-sm pl-3 pr-2 text-muted-foreground">+91</span>
+                        <Input id="phone" type="tel" placeholder="xxxxxxxxxx" value={phone} onChange={(e) => setPhone(e.target.value)} disabled={loading} className="border-l-0 rounded-l-none" maxLength={10}/>
+                    </div>
                      <Button variant={isRecording === 'phone' ? 'destructive' : 'outline'} size="icon" onClick={() => handleMicClick('phone')}>
                         <Mic />
                     </Button>
                 </div>
-                <p className="text-xs text-muted-foreground">Include country code (e.g., 91 for India).</p>
+                <p className="text-xs text-muted-foreground">Enter your 10-digit mobile number.</p>
               </div>
               <Button onClick={handleSendOtp} disabled={loading || !phone || !name} className="w-full">
                 {loading ? <Loader2 className="animate-spin" /> : "Send OTP"}

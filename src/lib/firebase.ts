@@ -68,18 +68,14 @@ function setupRecaptcha(containerId: string, params?: RecaptchaParameters): Reca
     const auth = getFirebaseAuth();
     if (!auth || typeof window === 'undefined') return null;
 
-    // Check if a verifier for this container already exists
-    if ((window as any).recaptchaVerifiers && (window as any).recaptchaVerifiers[containerId]) {
-        return (window as any).recaptchaVerifiers[containerId];
+    // To prevent re-rendering issues, we store the verifier on the window object.
+    if ((window as any).recaptchaVerifier) {
+      return (window as any).recaptchaVerifier;
     }
     
     const verifier = new RecaptchaVerifier(auth, containerId, params);
 
-    // Store verifier to avoid re-creating it
-    if (!(window as any).recaptchaVerifiers) {
-        (window as any).recaptchaVerifiers = {};
-    }
-    (window as any).recaptchaVerifiers[containerId] = verifier;
+    (window as any).recaptchaVerifier = verifier;
 
     return verifier;
 }
