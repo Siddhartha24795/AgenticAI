@@ -23,7 +23,7 @@ export default function SignUpComponent() {
   const { toast } = useToast();
   const { languageCode, t } = useLanguage();
   
-  const [name, setName] = useState('');
+  const [name, setName] = useState('Siddhartha Mishra');
   const [phone, setPhone] = useState('');
   const [age, setAge] = useState('');
   const [otp, setOtp] = useState('');
@@ -46,23 +46,33 @@ export default function SignUpComponent() {
         return;
     }
     setLoading(true);
-    
-    // Simulate sending OTP
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-    
-    setSimulatedVerificationId('fake-verification-id');
-    setIsOtpSent(true);
-    
-    const description = t('signup.otpSentDesc').replace('{phone}', `+91${TEST_PHONE_NUMBER}`);
-    toast({ title: t('signup.otpSentTitle'), description: description });
-    
-    setOtp(TEST_OTP); // Pre-fill with the test OTP
-    setLoading(false);
+
+    if (phone === TEST_PHONE_NUMBER) {
+        // Simulate sending OTP for the test number
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+        
+        setSimulatedVerificationId('fake-verification-id-for-test');
+        setIsOtpSent(true);
+        
+        const description = t('signup.otpSentDesc').replace('{phone}', `+91${phone}`);
+        toast({ title: t('signup.otpSentTitle'), description: description });
+        
+        setOtp(TEST_OTP); // Pre-fill with the test OTP
+        setLoading(false);
+    } else {
+        // Here you would put your real OTP sending logic for other numbers
+        // For now, we'll just show an alert that this is a demo.
+        toast({
+            title: "Live OTP Not Implemented",
+            description: "This is a demo. Please use the test phone number 7905118695.",
+            variant: "destructive"
+        });
+        setLoading(false);
+    }
   };
 
   const handleVerifyOtp = async () => {
-    const finalOtp = otp || TEST_OTP;
-    if (!finalOtp || !simulatedVerificationId) {
+    if (!otp || !simulatedVerificationId) {
         toast({ title: t('common.error'), description: t('signup.errorOtp'), variant: "destructive" });
         return;
     }
@@ -72,16 +82,11 @@ export default function SignUpComponent() {
         const auth = getFirebaseAuth()!;
         
         // This part is new: We create a credential object to sign in with.
-        const credential = PhoneAuthProvider.credential(simulatedVerificationId, finalOtp);
+        const credential = PhoneAuthProvider.credential(simulatedVerificationId, otp);
         
-        // Since we are using an anonymous user, we can link the credential.
-        // For a new user, you would use signInWithCredential(auth, credential)
-        // This is a more robust way to handle the sign-in/linking.
-        // I am assuming the useAuth hook has already signed in the user anonymously.
         const user = auth.currentUser;
 
         if (!user) {
-            // This is a fallback in case the anonymous user isn't there.
              await signInWithCredential(auth, credential);
         }
         
@@ -96,8 +101,6 @@ export default function SignUpComponent() {
         }
     } catch (error) {
         console.error("Error verifying OTP (simulation):", error);
-        // This error will likely show up in the console if the linking fails,
-        // but it won't crash the app for the user.
         toast({ title: t('signup.errorInvalidOtp'), description: "The simulated OTP is incorrect. Please check the code.", variant: "destructive" });
     } finally {
         setLoading(false);
@@ -212,15 +215,15 @@ export default function SignUpComponent() {
                 <div className="flex items-center gap-2">
                     <div className="flex items-center border rounded-md w-full">
                         <span className="text-sm pl-3 pr-2 text-muted-foreground">+91</span>
-                        <Input id="phone" type="tel" placeholder={t('signup.phonePlaceholder')} value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))} disabled={true} className="border-l-0 rounded-l-none" maxLength={10}/>
+                        <Input id="phone" type="tel" placeholder={t('signup.phonePlaceholder')} value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))} disabled={loading} className="border-l-0 rounded-l-none" maxLength={10}/>
                     </div>
-                     <Button variant={isRecording === 'phone' ? 'destructive' : 'outline'} size="icon" onClick={() => handleMicClick('phone')} disabled={loading || true}>
+                     <Button variant={isRecording === 'phone' ? 'destructive' : 'outline'} size="icon" onClick={() => handleMicClick('phone')} disabled={loading}>
                         <Mic />
                     </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">{t('signup.phoneHint')}</p>
               </div>
-              <Button onClick={handleSendOtp} disabled={loading || !name || !age} className="w-full">
+              <Button onClick={handleSendOtp} disabled={loading || !name || !age || !phone} className="w-full">
                 {loading ? <Loader2 className="animate-spin" /> : t('signup.sendOtpButton')}
               </Button>
             </>
