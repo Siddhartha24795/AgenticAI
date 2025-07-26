@@ -1,0 +1,13 @@
+diff --git a/node_modules/@genkit-ai/firebase/lib/index.js b/node_modules/@genkit-ai/firebase/lib/index.js
+index a7372c0..a5d070b 100644
+--- a/node_modules/@genkit-ai/firebase/lib/index.js
++++ b/node_modules/@genkit-ai/firebase/lib/index.js
+@@ -10,7 +10,7 @@
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.firebase = exports.firebaseAuth = exports.defineFirebaseFunction = void 0;
+ const action_1 = require("@genkit-ai/core/action");
+-const tracing_1 = require("@genkit-ai/core/tracing");
++const tracing_1 = require("genkit/tracing");
+ const apps_1 = require("firebase-admin/app");
+ const functions = require("firebase-functions/v2");
+ const gcf_v2_1 = require("firebase-functions/v2/gcf_v2");

@@ -24,12 +24,15 @@ export default function NotifyComponent() {
   const { languageCode, languagePrompt, t } = useLanguage();
 
   const handleNotification = (type: string, message?: string) => {
-    const notificationMessage = message || t(`notify.defaultMessage`, { type: t(`notify.${type.toLowerCase().replace(' ', '')}Title`) });
+    const alertType = t(`notify.${type.toLowerCase().replace(' ', '')}Title`);
+    const defaultMessageTemplate = t('notify.defaultMessage');
+    const notificationMessage = message || defaultMessageTemplate.replace('{type}', alertType);
+
     console.log('Sending notification:', { type, message: notificationMessage });
 
     toast({
       title: t('notify.alertSentTitle'),
-      description: t('notify.alertSentDesc', { type: t(`notify.${type.toLowerCase().replace(' ', '')}Title`) }),
+      description: t('notify.alertSentDesc').replace('{type}', alertType),
       variant: 'destructive',
       duration: 5000,
     });
