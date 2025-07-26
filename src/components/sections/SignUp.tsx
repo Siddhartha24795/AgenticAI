@@ -17,7 +17,7 @@ import { useLanguage } from '@/hooks/use-language';
 export default function SignUpComponent() {
   const router = useRouter();
   const { toast } = useToast();
-  const { languageCode, languagePrompt, t } = useLanguage();
+  const { languageCode, t } = useLanguage();
   
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -43,14 +43,20 @@ export default function SignUpComponent() {
   }, []);
 
   const handleSendOtp = async () => {
-    if (!phone || !recaptchaVerifierRef.current) {
-        toast({ title: "Error", description: "Please enter a valid phone number.", variant: "destructive" });
+    if (!phone.trim() || !name.trim()) {
+        toast({ title: "Error", description: "Please enter your name and a valid phone number.", variant: "destructive" });
         return;
     }
+    const verifier = recaptchaVerifierRef.current;
+    if (!verifier) {
+        toast({ title: "Error", description: "reCAPTCHA not initialized. Please refresh the page.", variant: "destructive" });
+        return;
+    }
+
     setLoading(true);
     try {
         const auth = getFirebaseAuth()!;
-        const result = await signInWithPhoneNumber(auth, `+${phone}`, recaptchaVerifierRef.current);
+        const result = await signInWithPhoneNumber(auth, `+${phone}`, verifier);
         setConfirmationResult(result);
         toast({ title: "OTP Sent", description: `An OTP has been sent to +${phone}.` });
     } catch (error) {
@@ -113,7 +119,6 @@ export default function SignUpComponent() {
       if (field === 'name') {
         setName(transcript);
       } else if (field === 'phone') {
-        // Remove non-numeric characters for phone number
         setPhone(transcript.replace(/\D/g, ''));
       }
     };
