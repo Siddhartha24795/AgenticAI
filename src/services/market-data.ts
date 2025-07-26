@@ -15,6 +15,8 @@ export async function getMarketData() {
       },
     });
 
+    console.log('Mandi API Response Status Code:', response.status);
+
     if (!response.ok) {
       const errorBody = await response.text();
       console.error('API Error Response:', errorBody);
