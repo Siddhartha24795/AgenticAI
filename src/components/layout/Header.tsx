@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Home, Leaf, LineChart, ShieldCheck, Languages, Menu, BellRing, Cog, UserPlus } from 'lucide-react';
+import { Home, Leaf, LineChart, ShieldCheck, Languages, Menu, BellRing, Cog } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import {
   DropdownMenu,
@@ -132,7 +132,6 @@ export default function Header() {
           {user?.isAnonymous && (
             <Link href="/signup" passHref>
               <Button variant="secondary">
-                <UserPlus className="mr-2 h-5 w-5" />
                 Sign Up
               </Button>
             </Link>
