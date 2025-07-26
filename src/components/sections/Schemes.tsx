@@ -132,7 +132,7 @@ export default function SchemesComponent() {
         const searchResult = await searchPromise;
         setResult(searchResult);
         
-        const textForSpeech = cleanTextForSpeech(searchResult.schemeInformation + ' ' + (searchResult.otherRelevantSchemes || ''));
+        const textForSpeech = cleanTextForSpeech(searchResult.schemeInformation);
         const speechPromise = textToSpeech({ text: textForSpeech });
         
         toast({ title: t('common.success'), description: t('schemes.successDescription') });
