@@ -2,9 +2,9 @@
 export const translations = {
   layout: {
     title: {
-      en: 'Agrigentic AI',
-      kn: 'ಅಗ್ರಿಜೆಂಟಿಕ್ AI',
-      hi: 'एग्रीजेंटिक AI',
+      en: 'AgriAssist AI',
+      kn: 'ಅಗ್ರಿಸಹಾಯ AI',
+      hi: 'एग्रीसहाय AI',
     },
     description: {
         en: 'AI-powered assistant for farmers',
@@ -13,7 +13,7 @@ export const translations = {
     }
   },
   header: {
-    title: { en: 'Agrigentic AI', kn: 'ಅಗ್ರಿಜೆಂಟಿಕ್ AI', hi: 'एग्रीजेंटिक AI' },
+    title: { en: 'AgriAssist AI', kn: 'ಅಗ್ರಿಸಹಾಯ AI', hi: 'एग्रीसहाय AI' },
     home: { en: 'Home', kn: 'ಹೋಮ್', hi: 'होम' },
     diagnose: { en: 'Diagnose', kn: 'ರೋಗನಿರ್ಣಯ', hi: 'निदान' },
     market: { en: 'Market', kn: 'ಮಾರುಕಟ್ಟೆ', hi: 'बाजार' },
@@ -26,6 +26,7 @@ export const translations = {
     english: { en: 'English', kn: 'English', hi: 'English' },
     kannada: { en: 'ಕನ್ನಡ (Kannada)', kn: 'ಕನ್ನಡ (Kannada)', hi: 'ಕನ್ನಡ (Kannada)' },
     hindi: { en: 'हिन्दी (Hindi)', kn: 'हिन्दी (Hindi)', hi: 'हिन्दी (Hindi)' },
+    signup: { en: 'Sign Up', kn: 'ಸೈನ್ ಅಪ್ ಮಾಡಿ', hi: 'साइन अप करें' },
   },
   home: {
     welcome: { en: 'Welcome,', kn: 'ಸ್ವಾಗತ,', hi: 'आपका स्वागत है,' },
@@ -193,3 +194,5 @@ export const translations = {
     searchFailed: { en: 'Search Failed', kn: 'ಹುಡುಕಾಟ ವಿಫಲವಾಯಿತು', hi: 'खोज विफल रही' },
   }
 };
+
+    

@@ -142,7 +142,7 @@ export default function Header() {
           {user && !user.displayName ? (
             <Link href="/signup" passHref>
               <Button variant="secondary">
-                Sign Up
+                {t('header.signup')}
               </Button>
             </Link>
           ) : user ? (
@@ -174,3 +174,5 @@ export default function Header() {
     </header>
   );
 }
+
+    

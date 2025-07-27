@@ -77,7 +77,7 @@ export default function AdminNotifyComponent() {
       <CardContent className="space-y-6">
         <div className="space-y-2">
           <Label className="font-semibold flex items-center gap-2"><Users /> {t('admin.notify.targetAudience')}</Label>
-          <RadioGroup value={audience} onValueChange={setAudience} className="flex space-x-4">
+          <RadioGroup value={audience} onValueChange={setAudience} className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="all" id="all" />
               <Label htmlFor="all">{t('admin.notify.allUsers')}</Label>
@@ -141,3 +141,5 @@ export default function AdminNotifyComponent() {
     </Card>
   );
 }
+
+    

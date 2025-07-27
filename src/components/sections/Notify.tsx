@@ -18,13 +18,13 @@ import { useLanguage } from '@/hooks/use-language';
 
 export default function NotifyComponent() {
   const { toast } = useToast();
+  const { t, languageCode, languagePrompt } = useLanguage();
   const [otherMessage, setOtherMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef<any>(null);
-  const { languageCode, languagePrompt, t } = useLanguage();
 
   const handleNotification = (type: string, message?: string) => {
-    const alertType = t(`notify.${type.toLowerCase().replace(' ', '')}Title`);
+    const alertType = t(`notify.${type.toLowerCase().replace(/\s/g, '')}Title`);
     const defaultMessageTemplate = t('notify.defaultMessage');
     const notificationMessage = message || defaultMessageTemplate.replace('{type}', alertType);
 
@@ -123,7 +123,7 @@ export default function NotifyComponent() {
             </p>
           </button>
           <button
-            onClick={() => handleNotification('Medical Emergency')}
+            onClick={() => handleNotification('MedicalEmergency')}
             className="p-6 bg-card rounded-lg shadow-md cursor-pointer transform hover:-translate-y-1 transition-transform duration-300 flex flex-col items-center text-center group border hover:border-green-500 hover:bg-green-50"
           >
             <HeartPulse className="w-16 h-16 text-green-500 mb-4" />
@@ -173,3 +173,5 @@ export default function NotifyComponent() {
     </Card>
   );
 }
+
+    
