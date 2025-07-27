@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
-import { Loader2, Upload, History, Mic, Send, Play, StopCircle } from 'lucide-react';
+import { Loader2, Upload, History, Mic, Send, Play, StopCircle, BotMessageSquare, RefreshCcw } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '../ui/skeleton';
 import { useAuth } from '@/hooks/use-auth';
@@ -128,7 +128,6 @@ export default function DiagnoseComponent() {
     }
 
     setLoading(true);
-    setDiagnosisResult(null);
     setAudioResponseUri(null);
     
     try {
@@ -146,15 +145,19 @@ export default function DiagnoseComponent() {
 
       const speechPromise = textToSpeech({ text: diagnosisText });
 
-      const db = getFirebaseDb();
-      const appId = getFirebaseAppId();
-      if (db) {
-          addDoc(collection(db, `artifacts/${appId}/users/${user.uid}/diagnoses`), {
-              imageUrl: imagePreview || null,
-              diagnosis: diagnosisText,
-              timestamp: serverTimestamp(),
-          }).catch(console.error);
+      // Only save initial diagnosis to history
+      if (!diagnosisResult) {
+        const db = getFirebaseDb();
+        const appId = getFirebaseAppId();
+        if (db) {
+            addDoc(collection(db, `artifacts/${appId}/users/${user.uid}/diagnoses`), {
+                imageUrl: imagePreview || null,
+                diagnosis: diagnosisText,
+                timestamp: serverTimestamp(),
+            }).catch(console.error);
+        }
       }
+
       toast({ title: t('common.success'), description: t('diagnose.successDescription') });
       
       const speechResult = await speechPromise;
@@ -167,6 +170,7 @@ export default function DiagnoseComponent() {
         toast({ title: t('common.analysisFailed'), description: error.message, variant: "destructive" });
     } finally {
       setLoading(false);
+      setTextQuery('');
     }
   };
   
@@ -236,6 +240,17 @@ export default function DiagnoseComponent() {
         }
     }
   };
+
+  const handleStartNewDiagnosis = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setTextQuery('');
+    setDiagnosisResult(null);
+    setAudioResponseUri(null);
+    if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+    }
+  }
   
   const renderSkeletons = () => (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
@@ -288,6 +303,7 @@ export default function DiagnoseComponent() {
                     onChange={handleImageChange}
                     ref={fileInputRef}
                     className="hidden"
+                    disabled={!!diagnosisResult}
                   />
                   {imagePreview ? (
                       <div className="relative w-full h-48">
@@ -306,16 +322,16 @@ export default function DiagnoseComponent() {
                 <Textarea 
                   value={textQuery}
                   onChange={(e) => setTextQuery(e.target.value)}
-                  placeholder={t('diagnose.queryPlaceholder')}
+                  placeholder={diagnosisResult ? t('diagnose.followUpPlaceholder') : t('diagnose.queryPlaceholder')}
                   className="min-h-[60px] flex-grow"
-                  disabled={loading}
+                  disabled={loading || (!imagePreview && !diagnosisResult)}
                 />
-                <Button onClick={handleTextSubmit} disabled={(!imageFile && !textQuery) || loading || !user} size="icon" aria-label={t('diagnose.textQueryAria')}>
+                <Button onClick={handleTextSubmit} disabled={(!imagePreview && !textQuery && !diagnosisResult) || loading || !user} size="icon" aria-label={t('diagnose.textQueryAria')}>
                   {loading ? <Loader2 className="animate-spin" /> : <Send />}
                 </Button>
                 <Button 
                   onClick={handleMicClick}
-                  disabled={loading || !user}
+                  disabled={loading || !user || (!imagePreview && !diagnosisResult)}
                   size="icon"
                   variant={isRecording ? 'destructive' : 'outline'}
                   aria-label={t('diagnose.audioQueryAria')}
@@ -353,6 +369,19 @@ export default function DiagnoseComponent() {
                 )}
             </CardContent>
           </Card>
+        )}
+
+        {diagnosisResult && !loading && (
+            <div className="flex justify-center gap-4">
+                <Button variant="secondary" disabled>
+                    <BotMessageSquare />
+                    {t('diagnose.continueChat')}
+                </Button>
+                 <Button variant="outline" onClick={handleStartNewDiagnosis}>
+                    <RefreshCcw />
+                    {t('diagnose.newChat')}
+                </Button>
+            </div>
         )}
       </div>
       
