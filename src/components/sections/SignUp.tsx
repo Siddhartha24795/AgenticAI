@@ -23,7 +23,7 @@ export default function SignUpComponent() {
   const { toast } = useToast();
   const { languageCode, t } = useLanguage();
   
-  const [name, setName] = useState('Siddhartha Mishra');
+  const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [age, setAge] = useState('');
   const [otp, setOtp] = useState('');
