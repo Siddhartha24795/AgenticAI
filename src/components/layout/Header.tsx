@@ -138,7 +138,7 @@ export default function Header() {
             </Link>
           )}
 
-          {user?.isAnonymous ? (
+          {user && !user.displayName ? (
             <Link href="/signup" passHref>
               <Button variant="secondary">
                 Sign Up
