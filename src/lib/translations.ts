@@ -19,6 +19,7 @@ export const translations = {
     market: { en: 'Market', kn: 'ಮಾರುಕಟ್ಟೆ', hi: 'बाजार' },
     schemes: { en: 'Schemes', kn: 'ಯೋಜನೆಗಳು', hi: 'योजनाएं' },
     exchange: { en: 'Exchange', kn: 'ವಿನಿಮಯ', hi: 'विनिमय' },
+    foodCall: { en: 'Meal Call', kn: 'ಊಟದ ಕರೆ', hi: 'भोजन कॉल' },
     notifier: { en: 'Notifier', kn: 'ಸೂಚಕ', hi: 'सूचक' },
     adminNotifier: { en: 'Admin Notifier', kn: 'ನಿರ್ವಾಹಕ ಸೂಚಕ', hi: 'एडमिन सूचक' },
     changeLanguage: { en: 'Change language', kn: 'ಭಾಷೆ ಬದಲಿಸಿ', hi: 'भाषा बदलें' },
@@ -126,6 +127,21 @@ export const translations = {
     alertSentDesc: { en: '{type} notification has been broadcast to nearby authorities and farmers.', kn: '{type} ಅಧಿಸೂಚನೆಯನ್ನು ಹತ್ತಿರದ ಅಧಿಕಾರಿಗಳು ಮತ್ತು ರೈತರಿಗೆ ಪ್ರಸಾರ ಮಾಡಲಾಗಿದೆ.', hi: '{type} अधिसूचना पास के अधिकारियों और किसानों को प्रसारित की गई है।' },
     defaultMessage: { en: 'Immediate assistance required due to {type}.', kn: '{type} ಕಾರಣದಿಂದಾಗಿ ತಕ್ಷಣದ ಸಹಾಯದ ಅಗತ್ಯವಿದೆ.', hi: '{type} के कारण तत्काल सहायता की आवश्यकता है।' },
   },
+  foodCall: {
+    title: { en: 'Share a Meal', kn: 'ಊಟ ಹಂಚಿಕೊಳ್ಳಿ', hi: 'भोजन साझा करें' },
+    description: { en: 'Let your farmer group know you have extra food to share. Select a meal or describe what you have.', kn: 'ಹಂಚಿಕೊಳ್ಳಲು ಹೆಚ್ಚುವರಿ ಆಹಾರವಿದೆ ಎಂದು ನಿಮ್ಮ ರೈತ ಗುಂಪಿಗೆ ತಿಳಿಸಿ. ಊಟವನ್ನು ಆಯ್ಕೆಮಾಡಿ ಅಥವಾ ನಿಮ್ಮಲ್ಲಿ ಏನಿದೆ ಎಂಬುದನ್ನು ವಿವರಿಸಿ.', hi: 'अपने किसान समूह को बताएं कि आपके पास साझा करने के लिए अतिरिक्त भोजन है। भोजन चुनें या बताएं कि आपके पास क्या है।' },
+    breakfastTitle: { en: 'Breakfast', kn: 'ಬೆಳಗಿನ ಉಪಾಹಾರ', hi: 'नाश्ता' },
+    lunchTitle: { en: 'Lunch', kn: 'ಮಧ್ಯಾಹ್ನದ ಊಟ', hi: 'दोपहर का भोजन' },
+    snacksTitle: { en: 'Snacks', kn: 'ಲಘು ಉಪಹಾರ', hi: 'नाश्ता' },
+    dinnerTitle: { en: 'Dinner', kn: 'ರಾತ್ರಿಯ ಊಟ', hi: 'रात का खाना' },
+    otherTitle: { en: 'Other / Custom', kn: 'ಇತರೆ / ಕಸ್ಟಮ್', hi: 'अन्य / कस्टम' },
+    otherPlaceholder: { en: 'Describe what you want to share (e.g., "extra vegetables from the garden")...', kn: 'ನೀವು ಏನು ಹಂಚಿಕೊಳ್ಳಲು ಬಯಸುತ್ತೀರಿ ಎಂಬುದನ್ನು ವಿವರಿಸಿ (ಉದಾ., "ತೋಟದಿಂದ ಹೆಚ್ಚುವರಿ ತರಕಾರಿಗಳು")...', hi: 'आप क्या साझा करना चाहते हैं उसका वर्णन करें (जैसे, "बगीचे से अतिरिक्त सब्जियां")...' },
+    recordMessageAria: { en: 'Record your message', kn: 'ನಿಮ್ಮ ಸಂದೇಶವನ್ನು ರೆಕಾರ್ಡ್ ಮಾಡಿ', hi: 'अपना संदेश रिकॉर्ड करें' },
+    sendCustomAlert: { en: 'Send Meal Call', kn: 'ಊಟದ ಕರೆ ಕಳುಹಿಸಿ', hi: 'भोजन कॉल भेजें' },
+    alertSentTitle: { en: 'Meal Call Sent!', kn: 'ಊಟದ ಕರೆ ಕಳುಹಿಸಲಾಗಿದೆ!', hi: 'भोजन कॉल भेजा गया!' },
+    alertSentDesc: { en: '{type} call has been sent to your farmer group.', kn: '{type} ಕರೆಯನ್ನು ನಿಮ್ಮ ರೈತ ಗುಂಪಿಗೆ ಕಳುಹಿಸಲಾಗಿದೆ.', hi: '{type} कॉल आपके किसान समूह को भेज दिया गया है।' },
+    defaultMessage: { en: 'Sharing {type}. All are welcome!', kn: '{type} ಹಂಚಿಕೊಳ್ಳುತ್ತಿದ್ದೇನೆ. ಎಲ್ಲರಿಗೂ ಸ್ವಾಗತ!', hi: '{type} साझा कर रहा हूँ। सभी का स्वागत है!' },
+  },
   admin: {
     notify: {
         title: { en: 'Admin Push Notifier', kn: 'ನಿರ್ವಾಹಕ ಪುಶ್ ಸೂಚಕ', hi: 'एडमिन पुश सूचक' },
@@ -194,5 +210,3 @@ export const translations = {
     searchFailed: { en: 'Search Failed', kn: 'ಹುಡುಕಾಟ ವಿಫಲವಾಯಿತು', hi: 'खोज विफल रही' },
   }
 };
-
-    

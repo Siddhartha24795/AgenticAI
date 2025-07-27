@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Home, Leaf, LineChart, ShieldCheck, Languages, Menu, BellRing, Cog, ArrowRightLeft } from 'lucide-react';
+import { Home, Leaf, LineChart, ShieldCheck, Languages, Menu, BellRing, Cog, ArrowRightLeft, UtensilsCrossed } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import {
   DropdownMenu,
@@ -42,6 +42,7 @@ export default function Header() {
     { path: '/market', labelKey: 'header.market', icon: LineChart },
     { path: '/schemes', labelKey: 'header.schemes', icon: ShieldCheck },
     { path: '/exchange', labelKey: 'header.exchange', icon: ArrowRightLeft },
+    { path: '/food-call', labelKey: 'header.foodCall', icon: UtensilsCrossed },
   ] as const;
 
   const renderNavLinks = (isMobileLayout = false) => (
