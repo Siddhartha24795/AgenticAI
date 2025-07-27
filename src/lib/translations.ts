@@ -18,6 +18,7 @@ export const translations = {
     diagnose: { en: 'Diagnose', kn: 'ರೋಗನಿರ್ಣಯ', hi: 'निदान' },
     market: { en: 'Market', kn: 'ಮಾರುಕಟ್ಟೆ', hi: 'बाजार' },
     schemes: { en: 'Schemes', kn: 'ಯೋಜನೆಗಳು', hi: 'योजनाएं' },
+    exchange: { en: 'Exchange', kn: 'ವಿನಿಮಯ', hi: 'विनिमय' },
     notifier: { en: 'Notifier', kn: 'ಸೂಚಕ', hi: 'सूचक' },
     adminNotifier: { en: 'Admin Notifier', kn: 'ನಿರ್ವಾಹಕ ಸೂಚಕ', hi: 'एडमिन सूचक' },
     changeLanguage: { en: 'Change language', kn: 'ಭಾಷೆ ಬದಲಿಸಿ', hi: 'भाषा बदलें' },
@@ -94,6 +95,15 @@ export const translations = {
     predefinedDocsNote: { en: 'Scheme information is based on a predefined set of documents for this demo.', kn: 'ಯೋಜನೆಯ ಮಾಹಿತಿಯು ಈ ಡೆಮೊಗಾಗಿ ಪೂರ್ವನಿರ್ಧರಿತ ದಾಖಲೆಗಳ ಗುಂಪನ್ನು ಆಧರಿಸಿದೆ.', hi: 'योजना की जानकारी इस डेमो के लिए दस्तावेजों के एक पूर्वनिर्धारित सेट पर आधारित है।' },
     errorDescription: { en: "Please enter a query for government schemes.", kn: "ಸರ್ಕಾರಿ ಯೋಜನೆಗಳಿಗಾಗಿ ದಯವಿಟ್ಟು ಪ್ರಶ್ನೆಯನ್ನು ನಮೂದಿಸಿ.", hi: "कृपया सरकारी योजनाओं के लिए एक प्रश्न दर्ज करें।" },
     successDescription: { en: "Scheme information retrieved.", kn: "ಯೋಜನೆಯ ಮಾಹಿತಿ ಹಿಂಪಡೆಯಲಾಗಿದೆ.", hi: "योजना की जानकारी प्राप्त हुई।" },
+  },
+  exchange: {
+    title: { en: 'Farmer Exchange', kn: 'ರೈತ ವಿನಿಮಯ', hi: 'किसान विनिमय' },
+    description: { en: 'A local marketplace to buy and sell seeds, fertilizers, and equipment with other farmers.', kn: 'ಇತರ ರೈತರೊಂದಿಗೆ ಬೀಜಗಳು, ರಸಗೊಬ್ಬರಗಳು ಮತ್ತು ಉಪಕರಣಗಳನ್ನು ಖರೀದಿಸಲು ಮತ್ತು ಮಾರಾಟ ಮಾಡಲು ಸ್ಥಳೀಯ ಮಾರುಕಟ್ಟೆ.', hi: 'अन्य किसानों के साथ बीज, उर्वरक और उपकरण खरीदने और बेचने के लिए एक स्थानीय बाज़ार।' },
+    buyTitle: { en: 'Looking to Buy', kn: 'ಖರೀದಿಸಲು ಹುಡುಕುತ್ತಿದ್ದೇನೆ', hi: 'खरीदने के लिए देख रहे हैं' },
+    sellTitle: { en: 'Looking to Sell', kn: 'ಮಾರಾಟ ಮಾಡಲು ಹುಡುಕುತ್ತಿದ್ದೇನೆ', hi: 'बेचने के लिए देख रहे हैं' },
+    quantity: { en: 'Quantity', kn: 'ಪ್ರಮಾಣ', hi: 'मात्रा' },
+    postedBy: { en: 'Posted By', kn: 'ಪೋಸ್ಟ್ ಮಾಡಿದವರು', hi: 'द्वारा पोस्ट किया गया' },
+    contact: { en: 'Contact Farmer', kn: 'ರೈತರನ್ನು ಸಂಪರ್ಕಿಸಿ', hi: 'किसान से संपर्क करें' },
   },
   notify: {
     title: { en: 'Emergency Notifier', kn: 'ತುರ್ತುಸ್ಥಿತಿ ಸೂಚಕ', hi: 'आपातकालीन सूचक' },
