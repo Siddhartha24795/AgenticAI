@@ -15,13 +15,13 @@ import {z} from 'genkit';
 const GetMarketInsightsInputSchema = z.object({
   cropQuery: z.string().describe('The farmer\'s question about a specific crop.'),
   location: z.string().describe('The city/location for the market analysis.'),
-  marketData: z.string().describe('JSON string market data with crop prices. The data is in a `records` array and may have an `isDummyData` flag.'),
+  marketData: z.string().describe('JSON string market data with crop prices. The data is in a `records` array and may have an `isDummyData` flag. Records may include `modal_price`, `yesterday_price`, `last_5_days_min`, and `last_5_days_max`.'),
   language: z.string().describe("The language for the response (e.g., 'English', 'Kannada', 'Hindi')."),
 });
 export type GetMarketInsightsInput = z.infer<typeof GetMarketInsightsInputSchema>;
 
 const GetMarketInsightsOutputSchema = z.object({
-  marketSummary: z.string().describe('A simple, actionable summary of market conditions for the specified crop.'),
+  marketSummary: z.string().describe('A simple, actionable summary of market conditions for the specified crop, including a comparative analysis and selling recommendation.'),
 });
 export type GetMarketInsightsOutput = z.infer<typeof GetMarketInsightsOutputSchema>;
 
@@ -43,12 +43,15 @@ Analyze the 'records' array in this data. Your entire analysis should be focused
 
 If the 'records' array is empty or does not contain data for the specified {{location}}, you must state that you couldn't find data for that exact place and are providing data for the nearest available market based on the provided data. Then proceed with the analysis for that nearby market.
 
-If the specific commodity is not in the data for the given location, analyze the general market trends for that location based on the other commodities present.
+The prices in the data are per quintal. Your analysis must always present the final price in QUINTALS. If any data has prices per kg, you must convert it to per quintal (1 quintal = 100 kg).
 
-The prices in the data are per quintal unless specified otherwise. Your analysis must always present the final price in QUINTALS. If the data has prices per kg, you must convert it to per quintal (1 quintal = 100 kg).
+After stating the current price, provide a comparative analysis. Compare the current 'modal_price' with 'yesterday_price', 'last_5_days_min', and 'last_5_days_max'. State whether the price is higher or lower than yesterday and how it compares to the 5-day range.
 
-Your analysis must be in simple, clear {{language}} and should guide their selling decisions by mentioning the price of the requested commodity per quintal.`,
+Finally, based on this analysis, provide a clear recommendation on whether it is a good time to sell the crop. For example: "This is the best time to sell." or "You might consider waiting as prices are currently low."
+
+Your entire analysis must be in simple, clear {{language}}.`,
 });
+
 
 const getMarketInsightsFlow = ai.defineFlow(
   {
