@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
-import { Loader2, Upload, History, Mic, Send, Play, StopCircle, BotMessageSquare, RefreshCcw } from 'lucide-react';
+import { Loader2, Upload, History, Mic, Send, Play, StopCircle, RefreshCcw } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '../ui/skeleton';
 import { useAuth } from '@/hooks/use-auth';
@@ -372,13 +372,9 @@ export default function DiagnoseComponent() {
         )}
 
         {diagnosisResult && !loading && (
-            <div className="flex justify-center gap-4">
-                <Button variant="secondary" disabled>
-                    <BotMessageSquare />
-                    {t('diagnose.continueChat')}
-                </Button>
+            <div className="flex justify-center">
                  <Button variant="outline" onClick={handleStartNewDiagnosis}>
-                    <RefreshCcw />
+                    <RefreshCcw className="mr-2 h-4 w-4" />
                     {t('diagnose.newChat')}
                 </Button>
             </div>
