@@ -4,7 +4,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getFirebaseAuth, setupRecaptcha, getFirebaseAppId } from '@/lib/firebase';
-import type { ConfirmationResult, RecaptchaVerifier, AuthError, UserCredential, User } from 'firebase/auth';
+import type { ConfirmationResult, RecaptchaVerifier, AuthError, UserCredential, User as FirebaseUser } from 'firebase/auth';
 import { signInWithPhoneNumber, updateProfile, signInWithCredential, PhoneAuthProvider } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
