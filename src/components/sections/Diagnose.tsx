@@ -12,18 +12,26 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
-import { Loader2, Upload, History, Mic, Send, Play, StopCircle, RefreshCcw } from 'lucide-react';
+import { Loader2, Upload, History, Mic, Send, Play, StopCircle, RefreshCcw, User as UserIcon, Bot } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '../ui/skeleton';
 import { useAuth } from '@/hooks/use-auth';
 import { Textarea } from '../ui/textarea';
 import { useLanguage } from '@/hooks/use-language';
+import { Avatar, AvatarFallback } from '../ui/avatar';
+import { cn } from '@/lib/utils';
 
-interface Diagnosis {
+
+interface DiagnosisHistory {
   id: string;
   imageUrl?: string;
   diagnosis: string;
   timestamp: Timestamp;
+}
+
+interface ConversationMessage {
+    role: 'user' | 'assistant';
+    content: string;
 }
 
 export default function DiagnoseComponent() {
@@ -32,17 +40,20 @@ export default function DiagnoseComponent() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [textQuery, setTextQuery] = useState('');
-  const [diagnosisResult, setDiagnosisResult] = useState<string | null>(null);
+  
+  const [conversation, setConversation] = useState<ConversationMessage[]>([]);
+  
   const [audioResponseUri, setAudioResponseUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [history, setHistory] = useState<Diagnosis[]>([]);
+  const [history, setHistory] = useState<DiagnosisHistory[]>([]);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
+  const conversationEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isAuthReady) return;
@@ -62,7 +73,7 @@ export default function DiagnoseComponent() {
       const historyData = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
-      })) as Diagnosis[];
+      })) as DiagnosisHistory[];
       setHistory(historyData);
       setHistoryLoading(false);
     }, (error: any) => {
@@ -103,6 +114,11 @@ export default function DiagnoseComponent() {
     }
   }, [audioResponseUri]);
 
+   useEffect(() => {
+    conversationEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [conversation, loading]);
+
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -114,7 +130,7 @@ export default function DiagnoseComponent() {
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
-        setDiagnosisResult(null);
+        setConversation([]);
         setAudioResponseUri(null);
       };
       reader.readAsDataURL(file);
@@ -129,11 +145,14 @@ export default function DiagnoseComponent() {
 
     setLoading(true);
     setAudioResponseUri(null);
+    setConversation(prev => [...prev, { role: 'user', content: query }]);
     
     try {
+      // For multi-turn, we can include previous conversation context if the AI flow supports it.
+      // For now, each call is independent but part of the same UI conversation.
       const input = {
           photoDataUri: imagePreview || undefined,
-          textQuery: query || undefined,
+          textQuery: query,
           language: languagePrompt,
       }
       
@@ -141,12 +160,12 @@ export default function DiagnoseComponent() {
       
       const [analysisResult] = await Promise.all([analysisPromise]);
       const diagnosisText = analysisResult.diagnosis;
-      setDiagnosisResult(diagnosisText);
+      setConversation(prev => [...prev, { role: 'assistant', content: diagnosisText }]);
 
       const speechPromise = textToSpeech({ text: diagnosisText });
 
       // Only save initial diagnosis to history
-      if (!diagnosisResult) {
+      if (conversation.length <= 1) {
         const db = getFirebaseDb();
         const appId = getFirebaseAppId();
         if (db) {
@@ -166,7 +185,8 @@ export default function DiagnoseComponent() {
     } catch(e) {
         const error = e as Error;
         console.error("Error diagnosing plant:", error);
-        setDiagnosisResult(`Error: ${error.message}. Please try again.`);
+        const errorMessage = `Error: ${error.message}. Please try again.`;
+        setConversation(prev => [...prev, { role: 'assistant', content: errorMessage }]);
         toast({ title: t('common.analysisFailed'), description: error.message, variant: "destructive" });
     } finally {
       setLoading(false);
@@ -245,7 +265,7 @@ export default function DiagnoseComponent() {
     setImageFile(null);
     setImagePreview(null);
     setTextQuery('');
-    setDiagnosisResult(null);
+    setConversation([]);
     setAudioResponseUri(null);
     if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -284,6 +304,8 @@ export default function DiagnoseComponent() {
     return renderSkeletons();
   }
 
+  const hasStartedConversation = imagePreview || conversation.length > 0;
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
       <div className="space-y-8">
@@ -292,93 +314,113 @@ export default function DiagnoseComponent() {
             <CardTitle className="font-headline text-2xl text-primary">{t('diagnose.title')}</CardTitle>
             <CardDescription>{t('diagnose.description')}</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-              <div
-                  className="border-2 border-dashed border-muted-foreground/50 rounded-lg p-8 text-center cursor-pointer hover:bg-accent/20 transition-colors"
-                  onClick={() => fileInputRef.current?.click()}
-              >
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    ref={fileInputRef}
-                    className="hidden"
-                    disabled={!!diagnosisResult}
-                  />
-                  {imagePreview ? (
-                      <div className="relative w-full h-48">
-                          <Image src={imagePreview} alt={t('diagnose.plantPreviewAlt')} layout="fill" objectFit="contain" className="rounded-md" />
-                      </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center space-y-2 text-muted-foreground">
-                      <Upload className="w-12 h-12" />
-                      <p>{t('diagnose.uploadPrompt')}</p>
-                      <p className="text-xs">{t('diagnose.uploadConstraints')}</p>
-                    </div>
-                  )}
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Textarea 
-                  value={textQuery}
-                  onChange={(e) => setTextQuery(e.target.value)}
-                  placeholder={diagnosisResult ? t('diagnose.followUpPlaceholder') : t('diagnose.queryPlaceholder')}
-                  className="min-h-[60px] flex-grow"
-                  disabled={loading || (!imagePreview && !diagnosisResult)}
-                />
-                <Button onClick={handleTextSubmit} disabled={(!imagePreview && !textQuery && !diagnosisResult) || loading || !user} size="icon" aria-label={t('diagnose.textQueryAria')}>
-                  {loading ? <Loader2 className="animate-spin" /> : <Send />}
-                </Button>
-                <Button 
-                  onClick={handleMicClick}
-                  disabled={loading || !user || (!imagePreview && !diagnosisResult)}
-                  size="icon"
-                  variant={isRecording ? 'destructive' : 'outline'}
-                  aria-label={t('diagnose.audioQueryAria')}
-                >
-                  {isRecording ? <Loader2 className="animate-pulse" /> : <Mic />}
-                </Button>
-              </div>
-          </CardContent>
-        </Card>
-        
-        {(loading || diagnosisResult) && (
-          <Card>
-            <CardHeader>
-                <div className="flex justify-between items-center">
-                    <CardTitle className="font-headline text-xl text-primary">{t('diagnose.resultTitle')}</CardTitle>
-                    {audioResponseUri && !loading && (
-                        <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handlePlayPause}
-                        >
-                        {isPlaying ? <StopCircle className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
-                        {isPlaying ? t('common.stopAudio') : t('common.playAudio')}
-                        </Button>
-                    )}
-                </div>
-            </CardHeader>
+          {!hasStartedConversation && (
             <CardContent>
-              {loading && !diagnosisResult && <Skeleton className="h-24 w-full" />}
-              {diagnosisResult && (
-                <div className="text-sm text-foreground whitespace-pre-wrap">{diagnosisResult}</div>
-              )}
-               {audioResponseUri && (
-                  <audio ref={audioRef} src={audioResponseUri} className="hidden" />
-                )}
+                <div
+                    className="border-2 border-dashed border-muted-foreground/50 rounded-lg p-8 text-center cursor-pointer hover:bg-accent/20 transition-colors"
+                    onClick={() => fileInputRef.current?.click()}
+                >
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      ref={fileInputRef}
+                      className="hidden"
+                    />
+                      <div className="flex flex-col items-center justify-center space-y-2 text-muted-foreground">
+                        <Upload className="w-12 h-12" />
+                        <p>{t('diagnose.uploadPrompt')}</p>
+                        <p className="text-xs">{t('diagnose.uploadConstraints')}</p>
+                      </div>
+                </div>
             </CardContent>
-          </Card>
-        )}
+          )}
 
-        {diagnosisResult && !loading && (
-            <div className="flex justify-center">
-                 <Button variant="outline" onClick={handleStartNewDiagnosis}>
-                    <RefreshCcw className="mr-2 h-4 w-4" />
-                    {t('diagnose.newChat')}
-                </Button>
-            </div>
-        )}
+          {hasStartedConversation && (
+             <CardContent className="space-y-4">
+                <ScrollArea className="h-[400px] w-full p-4 border rounded-lg">
+                    {imagePreview && (
+                        <div className="relative w-full h-48 mb-4">
+                            <Image src={imagePreview} alt={t('diagnose.plantPreviewAlt')} layout="fill" objectFit="contain" className="rounded-md" />
+                        </div>
+                    )}
+                    {conversation.map((msg, index) => (
+                        <div key={index} className={cn("flex items-start gap-3 my-4", msg.role === 'user' ? "justify-end" : "justify-start")}>
+                           {msg.role === 'assistant' && (
+                               <Avatar className="h-8 w-8">
+                                   <AvatarFallback className="bg-primary text-primary-foreground"><Bot /></AvatarFallback>
+                               </Avatar>
+                           )}
+                           <div className={cn("p-3 rounded-lg max-w-sm whitespace-pre-wrap", msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+                               {msg.content}
+                           </div>
+                           {msg.role === 'user' && (
+                                <Avatar className="h-8 w-8">
+                                   <AvatarFallback><UserIcon /></AvatarFallback>
+                               </Avatar>
+                           )}
+                        </div>
+                    ))}
+                     {loading && (
+                        <div className="flex items-start gap-3 my-4 justify-start">
+                           <Avatar className="h-8 w-8">
+                               <AvatarFallback className="bg-primary text-primary-foreground"><Bot /></AvatarFallback>
+                           </Avatar>
+                           <div className="p-3 rounded-lg bg-muted">
+                               <Loader2 className="animate-spin" />
+                           </div>
+                        </div>
+                     )}
+                    <div ref={conversationEndRef} />
+                </ScrollArea>
+                {audioResponseUri && !loading && conversation.some(m => m.role === 'assistant') && (
+                  <div className="flex justify-end">
+                      <Button variant="outline" size="sm" onClick={handlePlayPause}>
+                          {isPlaying ? <StopCircle className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
+                          {isPlaying ? t('common.stopAudio') : t('common.playAudio')}
+                      </Button>
+                      {audioResponseUri && <audio ref={audioRef} src={audioResponseUri} className="hidden" />}
+                  </div>
+                )}
+
+
+                <div className="flex items-center space-x-2 pt-4">
+                  <Textarea 
+                    value={textQuery}
+                    onChange={(e) => setTextQuery(e.target.value)}
+                    placeholder={conversation.length > 0 ? t('diagnose.followUpPlaceholder') : t('diagnose.queryPlaceholder')}
+                    className="min-h-[60px] flex-grow"
+                    disabled={loading || !imagePreview}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleTextSubmit();
+                      }
+                    }}
+                  />
+                  <Button onClick={handleTextSubmit} disabled={!textQuery || loading || !user} size="icon" aria-label={t('diagnose.textQueryAria')}>
+                    {loading ? <Loader2 className="animate-spin" /> : <Send />}
+                  </Button>
+                  <Button 
+                    onClick={handleMicClick}
+                    disabled={loading || !user || !imagePreview}
+                    size="icon"
+                    variant={isRecording ? 'destructive' : 'outline'}
+                    aria-label={t('diagnose.audioQueryAria')}
+                  >
+                    {isRecording ? <Loader2 className="animate-pulse" /> : <Mic />}
+                  </Button>
+                </div>
+                 <div className="flex justify-center pt-4">
+                     <Button variant="outline" onClick={handleStartNewDiagnosis}>
+                        <RefreshCcw className="mr-2 h-4 w-4" />
+                        {t('diagnose.newChat')}
+                    </Button>
+                </div>
+             </CardContent>
+          )}
+
+        </Card>
       </div>
       
       <Card>
@@ -421,3 +463,5 @@ export default function DiagnoseComponent() {
     </div>
   );
 }
+
+    
