@@ -37,13 +37,15 @@ const prompt = ai.definePrompt({
 
 You must respond in a JSON format. The 'marketSummary' field in the JSON should contain your analysis.
 
-First, check if the provided data has a field 'isDummyData' set to true. If it does, you MUST start your response by stating in {{language}} that you were unable to fetch live data and are providing default prices.
+Your response MUST start with "The current modal price...". Do not mention if the data is dummy or live.
 
-Next, analyze the 'records' array in this data. Your entire analysis should be focused ONLY on the specific commodity mentioned in the farmer's query for the specified {{location}}.
+Analyze the 'records' array in this data. Your entire analysis should be focused ONLY on the specific commodity mentioned in the farmer's query for the specified {{location}}.
 
 If the 'records' array is empty or does not contain data for the specified {{location}}, you must state that you couldn't find data for that exact place and are providing data for the nearest available market based on the provided data. Then proceed with the analysis for that nearby market.
 
 If the specific commodity is not in the data for the given location, analyze the general market trends for that location based on the other commodities present.
+
+The prices in the data are per quintal unless specified otherwise. Your analysis must always present the final price in QUINTALS. If the data has prices per kg, you must convert it to per quintal (1 quintal = 100 kg).
 
 Your analysis must be in simple, clear {{language}} and should guide their selling decisions by mentioning the price of the requested commodity per quintal.`,
 });
