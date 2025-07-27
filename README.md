@@ -1,5 +1,8 @@
 # Agrigentic AI - Your AI-Powered Farming Assistant
 
+## WebApp: https://studio--agriassist-ai-ws8ry.us-central1.hosted.app/
+## Youtube Video: https://youtu.be/HTH0i-gXdIs
+
 Agrigentic AI is a modern web application built with Next.js, designed to be a comprehensive digital assistant for farmers. It leverages the power of generative AI to provide critical information and tools, including crop disease diagnosis, real-time market analysis, information on government schemes, and an emergency notification system. The entire application is multilingual, supporting English, Kannada, and Hindi.
 
 ## Features
