@@ -107,7 +107,7 @@ export default function MarketComponent() {
       
     if (isRecording) {
       recognitionRef.current?.stop();
-      setIsRecording(false);
+      setIsRecording(null);
       return;
     }
 
