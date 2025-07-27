@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
-import { Loader2, Upload, History, Mic, Send, Play, StopCircle, RefreshCcw, User as UserIcon, Bot } from 'lucide-react';
+import { Loader2, Upload, History, Mic, Send, Play, StopCircle, RefreshCcw, User as UserIcon, Bot, ChevronsDown } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '../ui/skeleton';
 import { useAuth } from '@/hooks/use-auth';
@@ -54,6 +54,7 @@ export default function DiagnoseComponent() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
   const conversationEndRef = useRef<HTMLDivElement>(null);
+  const chatInputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (!isAuthReady) return;
@@ -138,9 +139,13 @@ export default function DiagnoseComponent() {
   };
 
   const handleDiagnose = async (query: string) => {
-    if ((!imageFile && !query) || !user) {
+    if (!imageFile && !query) {
       toast({ title: t('common.error'), description: t('diagnose.errorDescription'), variant: "destructive" });
       return;
+    }
+     if (!user) {
+        toast({ title: t('common.error'), description: "You must be logged in to use this feature.", variant: "destructive" });
+        return;
     }
 
     setLoading(true);
@@ -148,8 +153,6 @@ export default function DiagnoseComponent() {
     setConversation(prev => [...prev, { role: 'user', content: query }]);
     
     try {
-      // For multi-turn, we can include previous conversation context if the AI flow supports it.
-      // For now, each call is independent but part of the same UI conversation.
       const input = {
           photoDataUri: imagePreview || undefined,
           textQuery: query,
@@ -164,7 +167,6 @@ export default function DiagnoseComponent() {
 
       const speechPromise = textToSpeech({ text: diagnosisText });
 
-      // Only save initial diagnosis to history
       if (conversation.length <= 1) {
         const db = getFirebaseDb();
         const appId = getFirebaseAppId();
@@ -195,7 +197,8 @@ export default function DiagnoseComponent() {
   };
   
   const handleTextSubmit = () => {
-    handleDiagnose(textQuery);
+    const queryToSend = textQuery.trim() || "Please analyze this plant.";
+    handleDiagnose(queryToSend);
   };
   
   const handleMicClick = () => {
@@ -271,6 +274,11 @@ export default function DiagnoseComponent() {
         fileInputRef.current.value = '';
     }
   }
+
+  const handleContinue = () => {
+    chatInputRef.current?.focus();
+    chatInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
   
   const renderSkeletons = () => (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
@@ -305,6 +313,7 @@ export default function DiagnoseComponent() {
   }
 
   const hasStartedConversation = imagePreview || conversation.length > 0;
+  const isFirstResponseReceived = conversation.some(msg => msg.role === 'assistant');
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
@@ -383,9 +392,23 @@ export default function DiagnoseComponent() {
                   </div>
                 )}
 
+                {isFirstResponseReceived && !loading && (
+                  <div className="flex justify-center gap-4 pt-4 border-t">
+                      <Button variant="outline" onClick={handleContinue}>
+                          <ChevronsDown className="mr-2 h-4 w-4" />
+                          {t('diagnose.continueChat')}
+                      </Button>
+                      <Button variant="secondary" onClick={handleStartNewDiagnosis}>
+                          <RefreshCcw className="mr-2 h-4 w-4" />
+                          {t('diagnose.newChat')}
+                      </Button>
+                  </div>
+                )}
+
 
                 <div className="flex items-center space-x-2 pt-4">
                   <Textarea 
+                    ref={chatInputRef}
                     value={textQuery}
                     onChange={(e) => setTextQuery(e.target.value)}
                     placeholder={conversation.length > 0 ? t('diagnose.followUpPlaceholder') : t('diagnose.queryPlaceholder')}
@@ -398,7 +421,7 @@ export default function DiagnoseComponent() {
                       }
                     }}
                   />
-                  <Button onClick={handleTextSubmit} disabled={!textQuery || loading || !user} size="icon" aria-label={t('diagnose.textQueryAria')}>
+                  <Button onClick={handleTextSubmit} disabled={loading || !user || !imagePreview} size="icon" aria-label={t('diagnose.textQueryAria')}>
                     {loading ? <Loader2 className="animate-spin" /> : <Send />}
                   </Button>
                   <Button 
@@ -410,12 +433,6 @@ export default function DiagnoseComponent() {
                   >
                     {isRecording ? <Loader2 className="animate-pulse" /> : <Mic />}
                   </Button>
-                </div>
-                 <div className="flex justify-center pt-4">
-                     <Button variant="outline" onClick={handleStartNewDiagnosis}>
-                        <RefreshCcw className="mr-2 h-4 w-4" />
-                        {t('diagnose.newChat')}
-                    </Button>
                 </div>
              </CardContent>
           )}
@@ -463,5 +480,3 @@ export default function DiagnoseComponent() {
     </div>
   );
 }
-
-    
