@@ -281,7 +281,7 @@ export default function DiagnoseComponent() {
   };
   
   const renderSkeletons = () => (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+    <div className="space-y-8">
         <Card>
             <CardHeader>
                 <Skeleton className="h-8 w-3/4" />
@@ -316,129 +316,127 @@ export default function DiagnoseComponent() {
   const isFirstResponseReceived = conversation.some(msg => msg.role === 'assistant');
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-      <div className="space-y-8">
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-headline text-2xl text-primary">{t('diagnose.title')}</CardTitle>
-            <CardDescription>{t('diagnose.description')}</CardDescription>
-          </CardHeader>
-          {!hasStartedConversation && (
-            <CardContent>
-                <div
-                    className="border-2 border-dashed border-muted-foreground/50 rounded-lg p-8 text-center cursor-pointer hover:bg-accent/20 transition-colors"
-                    onClick={() => fileInputRef.current?.click()}
-                >
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      ref={fileInputRef}
-                      className="hidden"
-                    />
-                      <div className="flex flex-col items-center justify-center space-y-2 text-muted-foreground">
-                        <Upload className="w-12 h-12" />
-                        <p>{t('diagnose.uploadPrompt')}</p>
-                        <p className="text-xs">{t('diagnose.uploadConstraints')}</p>
-                      </div>
-                </div>
-            </CardContent>
-          )}
-
-          {hasStartedConversation && (
-             <CardContent className="space-y-4">
-                <ScrollArea className="h-[400px] w-full p-4 border rounded-lg">
-                    {imagePreview && (
-                        <div className="relative w-full h-48 mb-4">
-                            <Image src={imagePreview} alt={t('diagnose.plantPreviewAlt')} layout="fill" objectFit="contain" className="rounded-md" />
-                        </div>
-                    )}
-                    {conversation.map((msg, index) => (
-                        <div key={index} className={cn("flex items-start gap-3 my-4", msg.role === 'user' ? "justify-end" : "justify-start")}>
-                           {msg.role === 'assistant' && (
-                               <Avatar className="h-8 w-8">
-                                   <AvatarFallback className="bg-primary text-primary-foreground"><Bot /></AvatarFallback>
-                               </Avatar>
-                           )}
-                           <div className={cn("p-3 rounded-lg max-w-sm whitespace-pre-wrap", msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
-                               {msg.content}
-                           </div>
-                           {msg.role === 'user' && (
-                                <Avatar className="h-8 w-8">
-                                   <AvatarFallback><UserIcon /></AvatarFallback>
-                               </Avatar>
-                           )}
-                        </div>
-                    ))}
-                     {loading && (
-                        <div className="flex items-start gap-3 my-4 justify-start">
-                           <Avatar className="h-8 w-8">
-                               <AvatarFallback className="bg-primary text-primary-foreground"><Bot /></AvatarFallback>
-                           </Avatar>
-                           <div className="p-3 rounded-lg bg-muted">
-                               <Loader2 className="animate-spin" />
-                           </div>
-                        </div>
-                     )}
-                    <div ref={conversationEndRef} />
-                </ScrollArea>
-                {audioResponseUri && !loading && conversation.some(m => m.role === 'assistant') && (
-                  <div className="flex justify-end">
-                      <Button variant="outline" size="sm" onClick={handlePlayPause}>
-                          {isPlaying ? <StopCircle className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
-                          {isPlaying ? t('common.stopAudio') : t('common.playAudio')}
-                      </Button>
-                      {audioResponseUri && <audio ref={audioRef} src={audioResponseUri} className="hidden" />}
-                  </div>
-                )}
-
-                {isFirstResponseReceived && !loading && (
-                  <div className="flex justify-center gap-4 pt-4 border-t">
-                      <Button variant="outline" onClick={handleContinue}>
-                          <ChevronsDown className="mr-2 h-4 w-4" />
-                          {t('diagnose.continueChat')}
-                      </Button>
-                      <Button variant="secondary" onClick={handleStartNewDiagnosis}>
-                          <RefreshCcw className="mr-2 h-4 w-4" />
-                          {t('diagnose.newChat')}
-                      </Button>
-                  </div>
-                )}
-
-
-                <div className="flex items-center space-x-2 pt-4">
-                  <Textarea 
-                    ref={chatInputRef}
-                    value={textQuery}
-                    onChange={(e) => setTextQuery(e.target.value)}
-                    placeholder={conversation.length > 0 ? t('diagnose.followUpPlaceholder') : t('diagnose.queryPlaceholder')}
-                    className="min-h-[60px] flex-grow"
-                    disabled={loading || !imagePreview}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleTextSubmit();
-                      }
-                    }}
+    <div className="space-y-8">
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-headline text-2xl text-primary">{t('diagnose.title')}</CardTitle>
+          <CardDescription>{t('diagnose.description')}</CardDescription>
+        </CardHeader>
+        {!hasStartedConversation && (
+          <CardContent>
+              <div
+                  className="border-2 border-dashed border-muted-foreground/50 rounded-lg p-8 text-center cursor-pointer hover:bg-accent/20 transition-colors"
+                  onClick={() => fileInputRef.current?.click()}
+              >
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    ref={fileInputRef}
+                    className="hidden"
                   />
-                  <Button onClick={handleTextSubmit} disabled={loading || !user || !imagePreview} size="icon" aria-label={t('diagnose.textQueryAria')}>
-                    {loading ? <Loader2 className="animate-spin" /> : <Send />}
-                  </Button>
-                  <Button 
-                    onClick={handleMicClick}
-                    disabled={loading || !user || !imagePreview}
-                    size="icon"
-                    variant={isRecording ? 'destructive' : 'outline'}
-                    aria-label={t('diagnose.audioQueryAria')}
-                  >
-                    {isRecording ? <Loader2 className="animate-pulse" /> : <Mic />}
-                  </Button>
-                </div>
-             </CardContent>
-          )}
+                    <div className="flex flex-col items-center justify-center space-y-2 text-muted-foreground">
+                      <Upload className="w-12 h-12" />
+                      <p>{t('diagnose.uploadPrompt')}</p>
+                      <p className="text-xs">{t('diagnose.uploadConstraints')}</p>
+                    </div>
+              </div>
+          </CardContent>
+        )}
 
-        </Card>
-      </div>
+        {hasStartedConversation && (
+           <CardContent className="space-y-4">
+              <ScrollArea className="h-[400px] w-full p-4 border rounded-lg">
+                  {imagePreview && (
+                      <div className="relative w-full h-48 mb-4">
+                          <Image src={imagePreview} alt={t('diagnose.plantPreviewAlt')} layout="fill" objectFit="contain" className="rounded-md" />
+                      </div>
+                  )}
+                  {conversation.map((msg, index) => (
+                      <div key={index} className={cn("flex items-start gap-3 my-4", msg.role === 'user' ? "justify-end" : "justify-start")}>
+                         {msg.role === 'assistant' && (
+                             <Avatar className="h-8 w-8">
+                                 <AvatarFallback className="bg-primary text-primary-foreground"><Bot /></AvatarFallback>
+                             </Avatar>
+                         )}
+                         <div className={cn("p-3 rounded-lg max-w-sm whitespace-pre-wrap", msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+                             {msg.content}
+                         </div>
+                         {msg.role === 'user' && (
+                              <Avatar className="h-8 w-8">
+                                 <AvatarFallback><UserIcon /></AvatarFallback>
+                              </Avatar>
+                         )}
+                      </div>
+                  ))}
+                   {loading && (
+                      <div className="flex items-start gap-3 my-4 justify-start">
+                         <Avatar className="h-8 w-8">
+                             <AvatarFallback className="bg-primary text-primary-foreground"><Bot /></AvatarFallback>
+                         </Avatar>
+                         <div className="p-3 rounded-lg bg-muted">
+                             <Loader2 className="animate-spin" />
+                         </div>
+                      </div>
+                   )}
+                  <div ref={conversationEndRef} />
+              </ScrollArea>
+              {audioResponseUri && !loading && conversation.some(m => m.role === 'assistant') && (
+                <div className="flex justify-end">
+                    <Button variant="outline" size="sm" onClick={handlePlayPause}>
+                        {isPlaying ? <StopCircle className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
+                        {isPlaying ? t('common.stopAudio') : t('common.playAudio')}
+                    </Button>
+                    {audioResponseUri && <audio ref={audioRef} src={audioResponseUri} className="hidden" />}
+                </div>
+              )}
+
+              {isFirstResponseReceived && !loading && (
+                <div className="flex justify-center gap-4 pt-4 border-t">
+                    <Button variant="outline" onClick={handleContinue}>
+                        <ChevronsDown className="mr-2 h-4 w-4" />
+                        {t('diagnose.continueChat')}
+                    </Button>
+                    <Button variant="secondary" onClick={handleStartNewDiagnosis}>
+                        <RefreshCcw className="mr-2 h-4 w-4" />
+                        {t('diagnose.newChat')}
+                    </Button>
+                </div>
+              )}
+
+
+              <div className="flex items-center space-x-2 pt-4">
+                <Textarea 
+                  ref={chatInputRef}
+                  value={textQuery}
+                  onChange={(e) => setTextQuery(e.target.value)}
+                  placeholder={conversation.length > 0 ? t('diagnose.followUpPlaceholder') : t('diagnose.queryPlaceholder')}
+                  className="min-h-[60px] flex-grow"
+                  disabled={loading || !imagePreview}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleTextSubmit();
+                    }
+                  }}
+                />
+                <Button onClick={handleTextSubmit} disabled={loading || !user || !imagePreview} size="icon" aria-label={t('diagnose.textQueryAria')}>
+                  {loading ? <Loader2 className="animate-spin" /> : <Send />}
+                </Button>
+                <Button 
+                  onClick={handleMicClick}
+                  disabled={loading || !user || !imagePreview}
+                  size="icon"
+                  variant={isRecording ? 'destructive' : 'outline'}
+                  aria-label={t('diagnose.audioQueryAria')}
+                >
+                  {isRecording ? <Loader2 className="animate-pulse" /> : <Mic />}
+                </Button>
+              </div>
+           </CardContent>
+        )}
+
+      </Card>
       
       <Card>
         <CardHeader>
